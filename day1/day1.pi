@@ -1,0 +1,21 @@
+% module day1.
+
+import os.
+
+main => 
+    Lines = read_file_lines("day1/input1.txt"),
+    Sums = [],
+    RunningSum = 0,
+    foreach(L in Lines) 
+        if L != [] then RunningSum := RunningSum + to_int(L)
+        elseif L == [] then
+            Sums := Sums ++ [RunningSum],
+            RunningSum := 0
+        end
+    end,
+    Sums := Sums ++ [RunningSum],
+    print("Part 1 answer: "),
+    println(max(Sums)),
+    print("Part 2 answer: "),
+    println(sum(slice(sort_down(Sums),1,3))).
+    
