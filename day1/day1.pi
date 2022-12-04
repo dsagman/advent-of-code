@@ -1,7 +1,3 @@
-% module day1.
-
-import os.
-
 main => 
     Lines = read_file_lines("day1/input1.txt"),
     Sums = [],

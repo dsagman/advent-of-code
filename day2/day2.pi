@@ -1,0 +1,28 @@
+import basic.
+
+main => 
+    Lines = read_file_lines("day2/input.txt"),
+    Games = [[head(L)|strategy(last(L))] : L in Lines],
+    Wins = ["AB","BC","CA"],
+    MyScore = 0,
+    foreach(G in Games)
+        if membchk(G, Wins) then MyScore := MyScore + 6,
+        elseif head(G) == last(G) then MyScore := MyScore + 3
+        end,
+        MyScore := MyScore + bonus(last(G))
+    end,
+    print("Part 1 answer: "),
+    println(MyScore).
+
+strategy('X') = "A".
+strategy('Y') = "B".
+strategy('Z') = "C".
+
+bonus('A') = 1.
+bonus('B') = 2.
+bonus('C') = 3.
+
+    
+
+    % % print("Part 2 answer: "),
+    % % println(sum(slice(sort_down(Sums),1,3))).
