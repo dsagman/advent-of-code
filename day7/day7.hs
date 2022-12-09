@@ -1,9 +1,7 @@
-{-# LANGUAGE DeriveFoldable #-}
 module Main where
  
-import Data.List 
-import Data.Maybe
-import Data.List.Split
+import Data.List ( sort ) 
+import Data.List.Split ( splitOn )
 import qualified Data.Map as Map
 
 main :: IO ()
