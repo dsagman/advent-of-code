@@ -51,7 +51,6 @@ parse command (pathMap, curDir)
         | take 3 command == "dir"  = interpretDir command (pathMap, curDir)
         | otherwise = interpretFILE command (pathMap, curDir)
        
-
 interpretDir :: String  -> (Dir, [String]) -> (Dir, [String])
 interpretDir command (pathMap, curDir) = (Map.insert (curDir++[token]) [] pathMap, curDir)
         where token = drop 4 command
