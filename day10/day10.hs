@@ -1,6 +1,5 @@
 module Main where
-import Data.List 
-import Data.List.Split
+import Data.List.Split ( chunksOf )
 
 main :: IO ()
 main = do
