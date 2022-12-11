@@ -1,4 +1,4 @@
-datafile = open("input1.txt", "r")
+datafile = open("day1/input1.txt", "r")
 
 sums = []
 runningSum = 0
