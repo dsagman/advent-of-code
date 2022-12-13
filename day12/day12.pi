@@ -1,0 +1,86 @@
+main => 
+    Lines = read_file_lines("day12/input.txt"),
+    % Lines = read_file_lines("day12/test.txt"),
+    Nodes = [L : L in Lines],
+    Width = len(Nodes[1])+2,
+    Height = len(Nodes)+2,
+    Fnodes := [toInt(C) : C in flatten(pad(Nodes, Width-2))],
+   
+    nth(End, Fnodes, 27),
+    nth(Start, Fnodes, 0),
+    MyEdges = myEdges(Fnodes,Width,Height),
+    NumEdges = len(MyEdges),
+    Starts = [Start]++findall(A,nth(A, Fnodes, 1)),
+
+    Z = [],
+    Done = 0,
+    print("We have to do this many "),
+    println(len(Starts)),
+    foreach(S in Starts)
+      B := bfs(MyEdges,S,End),
+      Done := Done + 1,
+      println(done=(100*Done/len(Starts))),
+      if (B != 0) then  
+        Z := [B|Z]
+      end
+    end,
+    nl,
+    print("Part 1 answer: "),
+    println(last(Z)),
+    print("Part 2 answer: "),
+    println(min(Z)).
+
+table(+,+,+)
+bfs(Edges,Start,End) = W =>
+  W = 0,
+  Done = false,
+  Visited = new_set([Start]),
+  Queue = [[Start,0]],
+  while (not Done) 
+    Current := first(head(Queue)),
+    Steps := last(head(Queue)),
+    Nbrs = [N[2] : N in Edges, N[1]=Current],
+    foreach (Nbr in Nbrs)
+      if (Nbr==End) then 
+          Done := true,
+          W := Steps+1
+        end,
+      if (not has_key(Visited,Nbr)) then
+        put(Visited,Nbr),
+        Queue := Queue ++ [[Nbr, Steps+1]]
+      end
+    end,
+    Queue := tail(Queue),
+    if len(Queue) = 0 then
+      Done := true
+    end
+  end.
+
+toInt('S') = 0.
+toInt('E') = 27.
+toInt('Z') = 99.
+toInt(C)   = ord(C) - 96.
+
+myEdges(Nodes,W,H) = E => 
+  E = [],
+  foreach (I in 1..W*H)
+    if Nodes[I] != 99 
+        then foreach (Ex in areEdges(Nodes,I,W))
+          E := [Ex|E]
+        end
+    end
+end.
+
+areEdges(XS,N,W) = [[N,Nb] : Nb in nbors(N,W), XS[Nb]-1 <= XS[N]].
+
+nbors(N,W) = [N-1, N+1, N+W, N-W].
+    
+pad(XS,W) = [['Z' : _ in 1..W+2]] ++
+        [flatten([['Z'|X],['Z']]) : X in XS] ++
+        [['Z' : _ in 1..W+2]].
+
+
+
+
+
+
