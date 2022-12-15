@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
 import copy
+import random
 
 @dataclass
 class Grid:
@@ -68,7 +69,7 @@ def dropSand(grid,x):
             atRest = True
     saveImg(grid)
     grid.frame += 1
-    grid.grid[sandX, sandY] = 2
+    grid.grid[sandX, sandY] = random.randrange(2,10)
     return grid
         
 def saveImg(grid):
@@ -92,6 +93,9 @@ if __name__ == "__main__":
         dropSand(grid,500)
     grains -= 1
     print("Answer 1,", grains)  
+
+    plt.imshow(np.rot90(grid.grid[minX:maxX][:]), origin="lower", aspect="auto", interpolation="none")
+    plt.show()
 
     floor = maxY + 2
     grid2 = Grid(grid=copy.deepcopy(myGrid), minmax=[minX, maxX, minY, floor], overflow=False, frame=0)
