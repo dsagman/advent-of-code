@@ -14,14 +14,12 @@ main = do
         let moves = map (map (\x -> read x :: Int) . getMoves) [x | x <- lines dataFile, 'm' `elem` x]
 
         let stacks = zip cranes [map (take 3)$ filter ('[' `elem` ) $ transpose boxes !! (p-1) | p <- cranes]
-
-    
+   
         let answer1 = concatMap (take 1 . drop 1 . head . snd) $ doMoves moves stacks
         let answer2 = concatMap (take 1 . drop 1 . head . snd) $ doMoves' moves stacks
 
         putStr "Part 1 answer: " 
         print answer1
-
         
         putStr "Part 2 answer: " 
         print answer2

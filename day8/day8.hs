@@ -36,6 +36,7 @@ main = do
 
         let answer2 = (maximum . map maximum) combined2
 
+        
         putStr "Part 1 answer: " 
         print answer1
 
@@ -74,7 +75,6 @@ canSee xs
     where 
           upTo = (reverse . init) xs
           aTree = last xs
-
 
 makeGrid :: [Int] -> Int -> [[Int]]
 makeGrid xs gSize = [(take n $ repeat 1) ++ (take (gSize - n) $ repeat 0) | n <- xs]

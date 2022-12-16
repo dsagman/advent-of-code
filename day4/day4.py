@@ -9,12 +9,10 @@ parse = re.compile('\d*')
 def parseAssign(a):
     return [int(x) for x in parse.findall(a) if x != '']
 
-
 def overlap(a,b):
     return range(max(a[0], b[0]), min(a[-1], b[-1])+1)
 
-
-def interpretAssign1(a):
+def interpretAssign1(a : list[int]) -> bool: 
     taskA = range(a[0], a[1]+1)
     taskB = range(a[2], a[3]+1)
     overlapAB = overlap(taskA, taskB)
