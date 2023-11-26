@@ -1,5 +1,11 @@
-# advent-2022
+# advent-of-code
  
-Doing Advent of Code 2022. We'll see how far I get before I give up. And if I can keep up with multiple languages.
+Doing Advent of Code. 
+
+In 2022 I made it to day 16.
+
+Now for 2023.
+
+We'll see how far I get before I give up. 
 
 https://adventofcode.com/
