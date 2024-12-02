@@ -1,5 +1,5 @@
 {
-    "haskellShell.ghci.executablePath": "/home/agman/.ghcup/bin/ghci", 
+    "haskellShell.ghci.executablePath": "C:\\ghcup\\bin\\ghci.exe", 
     "code-runner.saveFileBeforeRun": true,
     "code-runner.executorMap": {
         "cpp": "cd $dir && g++ -std=c++20 $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt"   
