@@ -17,11 +17,7 @@ main = do
     let ur_ll = bDiag $ transpose puz
 
     let result = right ++ left ++ down ++ up ++ ll_ur ++ ul_lr ++ lr_ul ++ ur_ll
-    -- print puz
-    print $ sum $ map countXmas result
-
-a :: [[Integer]]
-a = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]
+    print $ "Part 1 answer: " ++ show (sum $ map countXmas result)
 
 -- Transpose a list of lists
 transpose :: [[a]] -> [[a]]
@@ -34,7 +30,6 @@ bDiag [] = []
 bDiag ([]:xss) = xss
 bDiag xss =  zipWith (++) (map ((:[]) . head) xss ++ repeat [])
                                   ([]:bDiag (map tail xss))
-
 
 countXmas :: [Char] -> Int
 countXmas xs = cnt where (_,cnt) = execState (xmasParser xs) (0,0)
