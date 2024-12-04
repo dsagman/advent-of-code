@@ -27,13 +27,10 @@ mulDoParser =  do
 doMulLineParser =  many $ do
     _ <- manyTill anyChar (try (lookAhead (string "do()")))
     doBlock <- between (string "do()") (string "don't()") (manyTill anyChar (try (lookAhead (string "don't()"))))
-    return $ doBlock -- need to concatenate the doBlock
-    -- return doBlock
-    -- doBlock <- try $ many $ manyTill anyChar (try (string "don't()"))
-    -- _ <- manyTill anyChar ((string "do()") )
-    -- case parse mulDoParser "" doBlock of
-    --     Right x -> return x
-    --     Left _ -> return (0,0)
+   
+    case parse mulLineParser "" doBlock of
+        Right x -> return x
+        Left _ -> return [(0,0)]
 
 main :: IO () 
 main = do
@@ -48,7 +45,7 @@ main = do
     let ans1 = sum (map (uncurry (*)) nums1)
     print $ "Part 1: " ++ show ans1
 
-    let modInput = "do()" ++ input ++ "don't() do() HAH! don't()"
+    let modInput = filter (/= '\n') $ "do()" ++ input ++ "don't() do() HAH! don't()"
     -- print modInput
     nums2 <- case parse doMulLineParser "" modInput of
         Left err -> do
