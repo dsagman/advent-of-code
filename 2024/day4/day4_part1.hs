@@ -5,7 +5,6 @@ main = do
     inputLines <- readFile "2024/day4/day"
     -- inputLines <- readFile "2024/day4/test"
     let puz = lines inputLines
-    -- let puz = a
 
     let right = puz
     let left  = map reverse puz
