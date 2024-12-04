@@ -6,12 +6,12 @@ import System.Exit (exitFailure)
 -- :set -package parsec
 
 mulLineParser :: Parser [(Int, Int)]
-mulLineParser =  many $ do
-    _ <- manyTill anyChar (try (string "mul(") )
+mulLineParser =  many $ try $ do
+    _ <- manyTill anyChar (try (string "mul("))
     mulParser
-
+    
 mulParser :: Parser ( Int,  Int)
-mulParser = try (do
+mulParser =  try (do
     firstNum <- read <$> many1 digit
     _ <- char ','
     secondNum <- read <$> many1 digit
@@ -19,18 +19,15 @@ mulParser = try (do
     return ( firstNum,  secondNum))
     <|> return (0, 0)
 
--- mulDoParser :: Parser [(Int, Int)]
-mulDoParser =  do
-    _ <- manyTill anyChar (try (string "mul("))
-    mulParser
 
-doMulLineParser =  many $ do
+doParser :: Parser [[(Int,Int)]]
+doParser =  many $ do
     _ <- manyTill anyChar (try (lookAhead (string "do()")))
     doBlock <- between (string "do()") (string "don't()") (manyTill anyChar (try (lookAhead (string "don't()"))))
-   
-    case parse mulLineParser "" doBlock of
+    let muls = runParser mulLineParser () "" doBlock
+    case muls of
+        Left _ -> return [(0, 0)]
         Right x -> return x
-        Left _ -> return [(0,0)]
 
 main :: IO () 
 main = do
@@ -45,19 +42,16 @@ main = do
     let ans1 = sum (map (uncurry (*)) nums1)
     print $ "Part 1: " ++ show ans1
 
-    let modInput = filter (/= '\n') $ "do()" ++ input ++ "don't() do() HAH! don't()"
-    -- print modInput
-    nums2 <- case parse doMulLineParser "" modInput of
+    let modInput = "do()" ++ input ++ "don't() do() don't()"
+    nums2 <- case parse doParser "" modInput of
         Left err -> do
             putStrLn $ "Error parsing input: " ++ show err
             exitFailure
         Right x -> pure x
 
-    print nums2
-    -- mapM_ print nums2
+    let ans2 = sum (map (uncurry (*)) (concat nums2))
+    print $ "Part 2: " ++ show ans2
 
-
-    -- print $ "Part 2: " ++ show (length part2 + length part1)
 
 
 
