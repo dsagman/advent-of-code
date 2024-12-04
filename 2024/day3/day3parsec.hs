@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import System.Exit (exitFailure)
@@ -19,9 +18,8 @@ mulParser =  try (do
     return ( firstNum,  secondNum))
     <|> return (0, 0)
 
-
 doParser :: Parser [[(Int,Int)]]
-doParser =  many $ do
+doParser =  many $ try $ do
     _ <- manyTill anyChar (try (lookAhead (string "do()")))
     doBlock <- between (string "do()") (string "don't()") (manyTill anyChar (try (lookAhead (string "don't()"))))
     let muls = runParser mulLineParser () "" doBlock
@@ -42,7 +40,7 @@ main = do
     let ans1 = sum (map (uncurry (*)) nums1)
     print $ "Part 1: " ++ show ans1
 
-    let modInput = "do()" ++ input ++ "don't() do() don't()"
+    let modInput = "do()" ++ input 
     nums2 <- case parse doParser "" modInput of
         Left err -> do
             putStrLn $ "Error parsing input: " ++ show err
