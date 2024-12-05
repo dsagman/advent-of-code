@@ -71,5 +71,6 @@
         "vector": "cpp",
         "algorithm": "cpp",
         "numeric": "cpp"
-    }
+    },
+    "haskell.hlint.executablePath": "C:\\cabal\\bin\\hlint.exe"
 }
