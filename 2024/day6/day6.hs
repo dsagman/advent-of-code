@@ -34,18 +34,17 @@ forward = do
     let maxX = maximum $ map fst $ Map.keys grid
     let maxY = maximum $ map snd $ Map.keys grid
 
-    -- Check if the player is out of bounds
     when (x >= 0 && x < maxX && y >= 0 && y < maxY) $ do
-        tryMove 4
-        -- ok <- move
-        -- if ok
-        --     then forward
-        --     else do
-        --         rotate90
-        --         forward
-        --         return ()
-        
-        
+        -- tryMove 4
+        ok <- move
+        if ok
+            then forward
+            else do
+                rotate90
+                forward
+
+
+
 tryMove :: Int -> GameState ()
 tryMove 0 = return () -- Stop if all directions have been tried
 tryMove attempts = do
@@ -75,11 +74,11 @@ move = do
                     'v' -> (x, y + 1)
                     '<' -> (x - 1, y)
                     '>' -> (x + 1, y)
-                    _   -> (x, y) -- Fallback for invalid direction 
+                    _   -> (x, y) -- Fallback for invalid direction, shouldn't happen
     -- Check if the new position is valid
     if Map.findWithDefault '.' newPos grid /= '#'
             then do
-                let updatedGrid = Map.insert (x, y) dir (Map.insert newPos dir grid)
+                let updatedGrid = Map.adjust (const dir) (x, y) $ Map.adjust (const dir) newPos grid
                 put (updatedGrid, (newPos, dir))
                 return True
             else return False -- Stop if obstacle or boundary is reached    
