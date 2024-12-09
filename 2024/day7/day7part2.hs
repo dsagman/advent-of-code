@@ -1,6 +1,11 @@
 import Text.Parsec
+    ( char, digit, endOfLine, string, eof, sepBy, many1, parse )
 import Text.Parsec.String (Parser)
 import System.Exit (exitFailure)
+import Control.Monad.State ( MonadState(put, get), State, evalState, runState, execState )
+import Data.Bifunctor (second)
+import Data.Char (isDigit)
+import System.Console.ANSI (xtermSystem)
 
 inputParser :: Parser [(Int, [[Char]])]
 inputParser = lineParser `sepBy` endOfLine <* eof
@@ -18,49 +23,78 @@ intStringParser = many1 digit `sepBy` char ' '
 
 main :: IO ()
 main = do
-    input <- readFile "2024/day7/test"
-    -- input <- readFile "2024/day7/day.txt"
+    -- input <- readFile "2024/day7/test"
+    input <- readFile "2024/day7/day.txt"
     dataSet <- case parse inputParser "" input of
         Left err -> do
             putStrLn $ "Error parsing input: " ++ show err
             exitFailure
         Right x -> pure x
-    print dataSet
-    print $ map evalExpr dataSet
-    -- let evals = filter (uncurry elem) (map evalExpr dataSet)
---     print $ "Part 1: " ++ show (sum $ map fst evals)
-
--- addMul :: [Int] -> [Int]
--- addMul [x] = [x]
--- addMul xs = do
---     combination <- addMul (tail xs)
---     [head xs + combination, head xs * combination]
-
--- reverse so that we evaluate left to right
-evalExpr :: (a, [[Char]]) -> (a, [[Char]])
-evalExpr (c, coeffs) = (c, addMul (reverse coeffs))
+    -- print dataSet
+    -- let exprs = map (\(c, coeffs) -> (c, addMul (reverse coeffs))) dataSet
+    let exprs = map (Data.Bifunctor.second addMul) dataSet
+    -- print $ exprs !! 4
+    let evals = map (Data.Bifunctor.second (map evalExpr)) exprs
+    -- print $ evals !! 4
+    let okEvals = filter (uncurry elem) evals
+    print $ map fst okEvals
+    print $ "Part 2: " ++ show (sum $ map fst okEvals)
 
 addMul :: [[Char]] -> [[Char]]
 addMul [x] = [x]
 addMul xs = do
     combination <- addMul (tail xs)
-    [head xs ++ "+" ++ combination, 
+    [head xs ++ "+" ++ combination,
      head xs ++ "*" ++ combination,
      head xs ++ "||" ++ combination]
 
--- def parse_num(xs: str) -> int:
---     ''' Number parser consumes string '''
---     i = 0
---     while i < len(xs) and xs[i].isdigit():
---         i += 1
---     return (int(xs[:i]), xs[i:])
 
--- def eval_expr(expr: str) -> int:
---     ''' Expression string evaluator left to right'''
---     x, expr = parse_num(expr)
---     if not expr:
---         return x
---     # y = eval_expr(expr[1:]) # recursion
---     op = expr[0]
---     if op == "+": return x + eval_expr(expr[1:]) 
---     if op == "*": return x * eval_expr(expr[1:]) 
+-- Parse digits one by one to build an integer
+parseNum :: State String String
+parseNum = go ""
+  where
+    go acc = do
+        xs <- get
+        case xs of
+            [] -> return acc -- End of input, return the accumulated number
+            (x:rest) 
+                | isDigit x -> do
+                    put rest -- Consume the character
+                    go (acc ++ [x]) -- Add the digit to the accumulator
+                | otherwise -> return acc -- Stop parsing and return the accumulated number
+
+parseOps :: State String [String]
+parseOps = go []
+  where
+    go acc = do
+        xs <- get
+        case xs of
+            [] -> return (reverse acc) -- Return the accumulated list when input is exhausted
+            (x:rest)
+                | isDigit x -> do
+                    let (num, remaining) = runState parseNum xs
+                    put remaining
+                    go (num : acc) -- Add the parsed number to the accumulator
+                | x == '|' && not (null rest) && head rest == '|' -> do
+                    put (tail rest) -- Skip the second '|'
+                    go ("||" : acc) -- Add "||" as a token
+                | x `elem` "+*" -> do
+                    put rest
+                    go ([x] : acc) -- Add the operator to the accumulator
+                | otherwise -> error $ "Invalid character: " ++ [x]
+
+evalExpr :: String -> Int
+evalExpr xs = do 
+    go (evalState parseOps xs) 
+    where
+        go xs = do
+            case xs of
+                [] -> 0
+                [x] -> read x
+                (x:op:y:rest) -> case op of
+                    "+" -> go (show (read x + read y) : rest)
+                    "*" -> go (show (read x * read y) : rest)
+                    "||" -> go (show (read (x ++ y) :: Int) : rest)
+                    _ -> error "Invalid operator"
+    
+
