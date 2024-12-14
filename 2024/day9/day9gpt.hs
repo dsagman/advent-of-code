@@ -2,8 +2,8 @@ import Control.Monad.State
 import qualified Data.Vector.Mutable as MV
 import Control.Monad.ST
 
-type Memory = MV.MVector s Int -- Mutable vector for memory
-type FreeSpace = [Int]         -- List of indices representing free space
+type Memory s = MV.MVector s Int -- Mutable vector for memory
+type FreeSpace = [Int]           -- List of indices representing free space
 type CompressState s = (Memory s, FreeSpace)
 
 -- Compress function
@@ -13,7 +13,7 @@ compress = do
     case freeSpace of
         [] -> return () -- Terminate when no free space is left
         (idx:fs) -> do
-            size <- MV.length mem
+            let size = MV.length mem
             lb <- MV.read mem (size - 1) -- Read the last element
             MV.write mem (size - 1) (-1) -- Mark the last slot as free
             if lb == -1
@@ -25,14 +25,16 @@ compress = do
 
 main :: IO ()
 main = do
-    let input = "221331" -- Example input
-    let mem = expand input
+    let datafile = "2024/day9/test"
+    -- let datafile = "2024/day9/day.txt"
+    input <- readFile datafile
+    let mem = (expand . head . lines) input
     let freeSpace = [i | (i, c) <- zip [0..] mem, c == -1]
     let finalMem = runST $ do
             memVec <- MV.new (length mem)
             mapM_ (uncurry $ MV.write memVec) (zip [0..] mem)
-            execStateT compress (memVec, freeSpace)
-            mapM (MV.read memVec) [0..length mem - 1]
+            (memVec', _) <- execStateT compress (memVec, freeSpace)
+            mapM (MV.read memVec') [0..length mem - 1]
     print $ checksum finalMem
 
 expand :: String -> [Int]
