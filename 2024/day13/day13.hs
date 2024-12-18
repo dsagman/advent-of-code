@@ -27,7 +27,6 @@ groupButtons :: [a] -> [[a]]
 groupButtons [] = []
 groupButtons buttons = take 3 buttons : groupButtons (drop 3 buttons)
 
-
 main :: IO ()
 main = do
     -- let dataFile = "2024/day13/test"
@@ -39,7 +38,7 @@ main = do
     print $ part1cost
     -- mapM_ (print . part2prize) buttons
     let buttons2 = map part2prize buttons
-    let part2sols = map solveAB buttons
+    let part2sols = map solveAB buttons2
     let part2cost = sum $ map costAB part2sols
     print $ part2cost
 
@@ -64,7 +63,7 @@ findAB button = [(a,b) | a <- [0..100], b <- [0..100], a*xA + b*xB == xP, a*yA +
 
 -- b=(py*ax-px*ay)/(by*ax-bx*ay) a=(px-b*bx)/ax        
 solveAB :: [(String, Int, Int)] -> (Int, Int)
-solveAB button = (a,b)
+solveAB button = if modCheck then (a,b) else (0,0)
     where
         b = (yP*xA - xP*yA) `div` (yB*xA - xB*yA)
         a = (xP - b*xB) `div` xA
@@ -72,3 +71,4 @@ solveAB button = (a,b)
         (nameA, xA, yA) = aBut
         (nameB, xB, yB) = bBut
         (nameP, xP, yP) = prize
+        modCheck = (xP - b*xB) `mod` xA == 0 && (yP - b*yB) `mod` yA == 0
