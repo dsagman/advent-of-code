@@ -18,9 +18,9 @@ inputParser = do
 
 main :: IO ()
 main = do
-    -- input <- readFile "2024/day1/day.txt"
+    input <- readFile "2024/day1/day.txt"
     -- input <- readFile "2024/day1/test.txt"
-    input <- readFile "2024/day1/error.txt"
+    -- input <- readFile "2024/day1/error.txt"
     nums <- case parse inputParser "input" input of
         Left err -> do
             putStrLn $ "Error parsing input: " ++ show err
