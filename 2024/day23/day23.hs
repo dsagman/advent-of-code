@@ -24,10 +24,10 @@ nodes aGraph = (nub . sort) $ concatMap (\(a, b) -> [a, b]) aGraph
 
 neighbors :: [(String, String)] -> String -> [String]
 neighbors [] _ = []
-neighbors ((a, b):xs) node
-    | a == node = b : neighbors xs node
-    | b == node = a : neighbors xs node
-    | otherwise = neighbors xs node
+neighbors ((a, b):graph') node
+    | a == node = b : neighbors graph' node
+    | b == node = a : neighbors graph' node
+    | otherwise = neighbors graph' node
 
 threeCycle :: [(String, String)] -> [String] -> [[String]]
 threeCycle graph nodes = (nub . sort) [sort [a, b, c] | 
