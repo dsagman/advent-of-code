@@ -6,7 +6,6 @@ import Data.Void
 import Data.Maybe
 import Data.Either
 import Control.Monad
-import Data.Vector.Generic.Mutable (move)
 import Control.Monad.Reader
 import qualified Data.Map as Map
 
