@@ -7,7 +7,9 @@ import Data.Maybe
 import Data.Either
 import Control.Monad
 import Control.Monad.Reader
+import Control.Monad.State
 import qualified Data.Map as Map
+
 
 
 type Parser = Parsec Void String
@@ -63,8 +65,32 @@ main = do
     -- putStr afterNmoveGrid
 
     let quads = runReader (robotByQuadrant afterNmove) room
-    print quads
-    print $ product quads
+    print $ "Part 1 = " ++ show (product quads)
+    -- let (robots', n') = runReader (part2 (robots, 1)) room
+    let (robots', n') = runReader (runStateT (part2 robots) 0) room
+    putStrLn $ runReader (showRobots robots') room
+    print $ "Part 2 Moves = " ++ show n'
+
+
+-- part2 :: ([Robot], Integer) -> Reader Room ([Robot], Integer)
+-- part2 (robots, n) = do
+--     robots' <- traverse moveRobot robots
+--     let robotCounts = Map.elems $ countRobots robots'
+--     let maxCount = maximum robotCounts
+--     if maxCount == 1 
+--         then return (robots',n) 
+--         else part2 (robots',n+1)
+
+-- With StateT and Reader monads!!!!!
+part2 :: [Robot] -> StateT Integer (Reader Room) [Robot]
+part2 robots = do
+    robots' <- lift $ traverse moveRobot robots  -- Move robots inside the Reader monad
+    let maxCount = maximum $ Map.elems $ countRobots robots'
+    modify (+1)  -- Increment state counter 
+    if maxCount == 1
+        then return robots'  
+        else part2 robots'   
+
 
 robotByQuadrant :: [Robot] -> Reader Room [Int]
 robotByQuadrant robots = do
