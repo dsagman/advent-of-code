@@ -75,8 +75,7 @@ main = do
 -- part2 :: ([Robot], Integer) -> Reader Room ([Robot], Integer)
 -- part2 (robots, n) = do
 --     robots' <- traverse moveRobot robots
---     let robotCounts = Map.elems $ countRobots robots'
---     let maxCount = maximum robotCounts
+--     let maxCount = maximum $ Map.elems $ countRobots robots'
 --     if maxCount == 1 
 --         then return (robots',n) 
 --         else part2 (robots',n+1)
@@ -86,7 +85,7 @@ part2 :: [Robot] -> StateT Integer (Reader Room) [Robot]
 part2 robots = do
     robots' <- lift $ traverse moveRobot robots  -- Move robots inside the Reader monad
     let maxCount = maximum $ Map.elems $ countRobots robots'
-    modify (+1)  -- Increment state counter 
+    modify (+1)  -- Increment state  
     if maxCount == 1
         then return robots'  
         else part2 robots'   

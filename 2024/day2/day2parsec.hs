@@ -51,11 +51,20 @@ posDeltas = map abs . deltas
 maxDeltas :: [Int] -> Int
 maxDeltas = maximum . posDeltas
 
-t1 :: [Int]
-t1 = deltas [1..10]
-t2 :: [Int]
-t2 = deltas [1,2,65,2,78,0,-100]
+l1 = [1,2,65,2,78,0,-100]
+l2 = [1..10]
+t1 = deltas l1
+t2 = deltas l2
+t3 = posDeltas l1
+t4 = posDeltas l2
+t5 = maxDeltas l1
+t6 = maxDeltas l2
 tests :: IO ()
 tests = do
-               print t1
-               print t2
+        print t1
+        print t2
+        print t3
+        print t4
+        print t5
+
+
