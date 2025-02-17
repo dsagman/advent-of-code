@@ -1,4 +1,3 @@
-import Distribution.Compat.Graph (neighbors)
 import Data.List (sort)
 main :: IO ()
 main = do

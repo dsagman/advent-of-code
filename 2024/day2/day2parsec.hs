@@ -45,26 +45,6 @@ safe xs = (all (>0) xs && all (<=3) xs) || (all (<0) xs && all (>=(-3)) xs)
 dropEach :: [a] -> [[a]]
 dropEach xs = [take n xs ++ drop (n+1) xs | n <- [0..length xs - 1]]
 
-posDeltas :: [Int] -> [Int]
-posDeltas = map abs . deltas
 
-maxDeltas :: [Int] -> Int
-maxDeltas = maximum . posDeltas
-
-l1 = [1,2,65,2,78,0,-100]
-l2 = [1..10]
-t1 = deltas l1
-t2 = deltas l2
-t3 = posDeltas l1
-t4 = posDeltas l2
-t5 = maxDeltas l1
-t6 = maxDeltas l2
-tests :: IO ()
-tests = do
-        print t1
-        print t2
-        print t3
-        print t4
-        print t5
 
 
