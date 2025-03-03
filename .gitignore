@@ -1,5 +1,5 @@
 **/*.txt
 **/*.dat
 .vscode/
-
+.DS_Store
 
