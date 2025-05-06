@@ -13,27 +13,27 @@
 
 import Crypto.Hash
 import qualified Data.ByteString.Char8 as BS
--- import Data.ByteString (ByteString)
 
-adventMine :: String -> Int -> [Digest MD5]
-adventMine key = map (hashWith MD5 . BS.pack . (key <>) . show) [0..]
 
-adventNonce5 :: (Show a) => Int -> [a] -> Int
-adventNonce5 n (x:xs)= 
-    if take 5 (show x) == "00000"
+adventHash :: Show a => String -> a -> String
+adventHash key n = show $ hashWith MD5 (BS.pack (key <> show n))
+
+adventNonce5 :: (Show t, Num t) => t -> String -> t
+adventNonce5 n key = 
+    if take 5 (adventHash key n) == "00000"
     then n
-    else adventNonce5 (n+1) xs
+    else adventNonce5 (n+1) key
 
-adventNonce6 :: (Show a) => Int -> [a] -> Int
-adventNonce6 n (x:xs) = 
-    if take 5 (show x) == "000000"
+adventNonce6 :: (Show t, Num t) => t -> String -> t
+adventNonce6 n key = 
+    if take 6 (adventHash key n) == "000000"
     then n
-    else adventNonce6 (n+1) xs
+    else adventNonce6 (n+1) key
 
 main :: IO ()
 main = do
     let myKey = "iwrupvqb"
-    print "Answer part 1:"
-    print $ adventNonce5 0 $ adventMine myKey
-    print "Answer part 2:"
-    print $ adventNonce6 0 $ adventMine myKey
+    print "V2 Answer part 1:"
+    print $ adventNonce5 0 myKey
+    print "V2 Answer part 2:"
+    print $ adventNonce6 0 myKey
