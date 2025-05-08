@@ -1,0 +1,42 @@
+% 123 -> x
+% 456 -> y
+% x AND y -> d
+% x OR y -> e
+% x LSHIFT 2 -> f
+% y RSHIFT 2 -> g
+% NOT x -> h
+% NOT y -> i
+
+% After it is run, these are the signals on the wires:
+
+% d: 72
+% e: 507
+% f: 492
+% g: 114
+% h: 65412
+% i: 65079
+% x: 123
+% y: 456
+
+twos_comp(X) = R => 
+    if (X < 0) then
+       R = (65536 + X )
+    else 
+       R = X 
+    end.
+
+fix(Xs) = [twos_comp(X) : X in Xs].
+
+
+main =>
+    println("hello"),
+    X = 123,
+    Y = 456,
+    D = X /\ Y,
+    E = X \/ Y,
+    F = X << 2,
+    G = Y >> 2,
+    H = ~X,
+    I = ~Y,
+    Answer = [D,E,F,G,H,I,X,Y],
+    println(fix(Answer)).
