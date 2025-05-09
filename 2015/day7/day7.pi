@@ -18,6 +18,15 @@
 % x: 123
 % y: 456
 
+eval(x,123).
+eval(y,456).
+eval(d, D) :- eval(x, X), eval(y, Y), D is X /\ Y.
+eval(e, E) :- eval(x, X), eval(y, Y), E is X \/ Y.
+eval(f, F) :- eval(x, X), F is X << 2.
+eval(g, G) :- eval(y, Y), G is Y >> 2.
+eval(h, H) :- eval(x, X), H is ~X.
+eval(i, I) :- eval(y, Y), I is ~Y.
+
 twos_comp(X) = R => 
     if (X < 0) then
        R = (65536 + X )
@@ -29,7 +38,6 @@ fix(Xs) = [twos_comp(X) : X in Xs].
 
 
 main =>
-    println("hello"),
     X = 123,
     Y = 456,
     D = X /\ Y,
