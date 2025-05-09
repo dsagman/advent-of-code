@@ -1,10 +1,13 @@
 
-import Text.Parsec
+import Text.Parsec ( digit, letter, newline, space, string, choice, (<|>), many, many1, parse, try )
 import Text.Parsec.String (Parser)
 import System.Exit (exitFailure)
-import Data.Char
-import Data.List
+import Data.Char ( toUpper )    
+import Data.List ( sortOn )
+import System.Process 
 
+
+--- Data Structures
 
 type Op = String
 data Term = Const Int
@@ -16,6 +19,8 @@ data Exp
   | NotOp Term Term
   | BinOp Op Term Term Term
   deriving (Show, Eq)
+
+--- Parsers
 
 termP :: Parser Term
 termP =  Const . read <$> many1 digit
@@ -51,6 +56,25 @@ lineParser = choice [try notP, try binOpP, try assignP]
 inputParser :: Parser [Exp]
 inputParser = many (try (lineParser <* newline))
 
+--- Prolog Formatters 
+
+-- Input ---
+-- 123 -> x
+-- x AND y -> d
+-- x OR y -> e
+-- x LSHIFT 2 -> f
+-- y RSHIFT 2 -> g
+-- NOT x -> h
+
+-- Output ---
+-- eval(x,123).
+-- eval(a, A) :- eval(lx, A).
+-- eval(d, D) :- eval(x, X), eval(y, Y), D is X /\ Y.
+-- eval(e, E) :- eval(x, X), eval(y, Y), E is X \/ Y.
+-- eval(f, F) :- eval(x, X), F is X << 2.
+-- eval(g, G) :- eval(y, Y), G is Y >> 2.
+-- eval(h, H) :- eval(x, X), H is ~X.
+
 fmtT :: Term -> String
 fmtT (Var x) = x
 fmtT (Const x) = show x
@@ -62,21 +86,6 @@ fmtOp op = case op of
     "RSHIFT" -> ">>"
     "LSHIFT" -> "<<"
     _ -> "ERROR!!!!"
-
--- 123 -> x
--- x AND y -> d
--- x OR y -> e
--- x LSHIFT 2 -> f
--- y RSHIFT 2 -> g
--- NOT x -> h
-
--- eval(x,123).
--- eval(a, A) :- eval(lx, A).
--- eval(d, D) :- eval(x, X), eval(y, Y), D is X /\ Y.
--- eval(e, E) :- eval(x, X), eval(y, Y), E is X \/ Y.
--- eval(f, F) :- eval(x, X), F is X << 2.
--- eval(g, G) :- eval(y, Y), G is Y >> 2.
--- eval(h, H) :- eval(x, X), H is ~X.
 
 upT :: Term -> String
 upT = map toUpper . fmtT
@@ -113,9 +122,7 @@ fmt (BinOp op t1 t2 t3) =
     upT t1 ++ " " ++ fmtOp op ++ " " ++ upT t2 ++  
     "."
 
-prologFmt :: [String] -> String
--- prologFmt xs = unlines $ map (("     " ++) . (++ ",")) xs
-prologFmt = unlines
+-- Sorting function
 
 lastTerm :: Exp -> Term
 lastTerm (Assign _ t2)    = t2
@@ -125,8 +132,23 @@ lastTerm (BinOp _ _ _ t3)  = t3
 sortByLast :: [Exp] -> [Exp]
 sortByLast = sortOn (\e ->
     let v = (fmtT . lastTerm) e
-    in  (length v, v)
-  )
+    in  (length v, v))
+
+-- Prolog Generator
+
+prologGen :: [Exp] -> String -> IO ()
+prologGen dataset fn = do
+    -- sorting is not strictly necessary.
+    -- the key is tabling!
+    let prologFile = fmt <$> sortByLast dataset
+    -- mapM_ print prologFile -- just to see if it's working
+    writeFile fn ":- initialization(main).\n"
+    appendFile fn ":- table eval/2.\n"
+    appendFile fn $ unlines prologFile
+    appendFile fn "\n"
+    appendFile fn "main :- \n"
+    appendFile fn "     eval(a,A),\n"
+    appendFile fn "     writeln(A)."
 
 main :: IO ()
 main = do
@@ -136,17 +158,23 @@ main = do
         Left err -> putStrLn ("Error parsing input: " ++ show err) >> exitFailure
         Right x  -> pure x
 
-    -- sorting is not strictly necessary.
-    -- the key is tabling!
-    let prologFile = fmt <$> sortByLast dataSet
-    mapM_ print prologFile
-    let fn = "./2015/day7/day7gen.pl"
-    writeFile fn ":- initialization(main).\n"
-    appendFile fn ":- table eval/2.\n"
-    appendFile fn $ prologFmt prologFile
-    appendFile fn "\n"
-    appendFile fn "main :- \n"
-    appendFile fn "     eval(a,A),\n"
-    appendFile fn "     writeln(A)."
+    let fn1 = "./2015/day7/day7part1.pl"
+    let goal = "eval(a,A)"
+    prologGen dataSet fn1
+    part1 <- init <$> readProcess "swipl" ["-q", "-s", fn1, "-g", goal, "-t", "halt"] ""
+    putStrLn "Answer Part 1:"
+    putStrLn part1
+
+    let fn2 = "./2015/day7/day7part2.pl"
+    let sedCmd = "sed 's/^eval(b,[0-9]*).$/eval(b," ++ part1 ++ ")./' " 
+                ++ fn1 ++ " > " ++ fn2
+    callCommand sedCmd
+    part2 <- init <$> readProcess "swipl" ["-q", "-s", fn2, "-g", goal, "-t", "halt"] ""
+    putStrLn "Answer Part 2:"
+    putStrLn part2
+
+    
+
+
 
 
