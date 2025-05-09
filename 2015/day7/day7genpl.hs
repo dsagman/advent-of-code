@@ -60,6 +60,7 @@ inputParser = many (try (lineParser <* newline))
 
 -- Input ---
 -- 123 -> x
+-- lx -> a
 -- x AND y -> d
 -- x OR y -> e
 -- x LSHIFT 2 -> f
