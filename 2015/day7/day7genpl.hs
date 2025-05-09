@@ -4,7 +4,7 @@ import Text.Parsec.String (Parser)
 import System.Exit (exitFailure)
 import Data.Char ( toUpper )    
 import Data.List ( sortOn )
-import System.Process 
+import System.Process ( callCommand, readProcess ) 
 
 
 --- Data Structures
