@@ -26,6 +26,7 @@ y RSHIFT 2 -> g
 NOT x -> h
 NOT y -> i
 
+
 After it is run, these are the signals on the wires:
 
 d: 72
