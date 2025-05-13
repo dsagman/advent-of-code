@@ -23,7 +23,7 @@ import Data.List
 incChar :: Char -> (Char, Bool) -- True -> carry
 incChar x
     | x == 'z'               = ('a', True)
-    | x `elem` ['h','n','k'] = ((chr . (2+) . ord) x, False)
+    | x `elem` ['h','n','k'] = ((chr . (2+) . ord) x, False) 
     | otherwise              = ((chr . (1+) . ord) x, False)
 
 incStr :: String -> String
@@ -34,7 +34,8 @@ incStr xs = reverse $ aux (reverse xs) True
             where (nx, carry) = incChar x    
 
 validP :: String -> Bool
-validP xs = -- all (`notElem` xs) "ilo" &&
+validP xs = -- all (`notElem` xs) "ilo" && 
+            -- we never allow i,l or o in incChar, so can skip check
             any (\(x,y,z) -> [y-x,z-y] == [1,1]) tripOrds && 
             ((>1) . length . filter (>1) . map length . group) xs
     where 
