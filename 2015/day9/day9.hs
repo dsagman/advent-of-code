@@ -52,8 +52,8 @@ cityPairs cities = map listToPair $ permutations cities
 
 main :: IO ()
 main = do
-    -- input <- readFile "./2015/day9/test"    
-    input <- readFile "./2015/day9/day.txt"
+    -- input <- readFile "./2015/day12/test"    
+    input <- readFile "./2015/day12/day.txt"
     dataSet <- case parse inputParser "" input of
         Left err -> do
             putStrLn $ "Error parsing input: " ++ show err
