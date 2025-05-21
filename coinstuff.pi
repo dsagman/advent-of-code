@@ -1,0 +1,41 @@
+% https://www.hakank.org/picat/money_change.pi
+% adapted
+import cp.
+import util.
+
+main =>
+   Total = 25, 
+   Sizes = [20, 15, 10, 5, 5 ],
+   L = findall(X, $tubs(Total, Sizes, X)),
+%    Lexpand = [flatten([new_list(LL[I],Coins[I]) : I in 1..LL.length, LL[I] \= 0 ]) : LL in to_array(L)],
+   writeln(L),
+   writeln(len=L.length),
+   nl.
+
+tubs(Total, Sizes, X) =>
+    % X = new_array(Sizes.length),
+    % X :: 1 .. Total,
+    permutation(Sizes,X),
+    print(X),
+    % foreach (P in X)
+    %     sum(P) #= Total,
+    solve(X).
+
+
+
+% main =>
+%    Total = 25, 
+%    Coins = [20, 15, 10, 5, 5 ],
+%    L = findall(X, $money(Total, Coins, X)),
+%    Lexpand = [flatten([new_list(LL[I],Coins[I]) : I in 1..LL.length, LL[I] \= 0 ]) : LL in to_array(L)],
+%    writeln(L),
+%    writeln(len=L.length),
+%    nl.
+
+% money(Total, Coins, X) =>
+%    N = length(Coins),
+%    X = new_list(N),
+%    X :: 0..Total,
+%    scalar_product(Coins, X, #=, Total),
+%    solve(X).
+
