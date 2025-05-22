@@ -12,7 +12,7 @@
 import Data.List
 
 test :: [Int]
-test = [20, 15, 10, 5, 5 ]
+test = [20, 15, 10, 5, 5]
 
 testnog :: Int
 testnog = 25
@@ -21,13 +21,13 @@ eggnog :: Int
 eggnog = 150 -- real data
 
 part1 :: Int -> [Int] -> [[Int]]
-part1 vol xs = filter ((==vol) . sum) $ subsequences xs
+part1 vol = filter ((==vol) . sum) . subsequences 
 
+part2 :: Int -> [Int] -> [(Int, [Int])]
 part2 vol xs = filter ((==m) . fst) (zip ls p1)
     where p1 = part1 vol xs
           ls = map length p1
           m  = minimum ls
-
 
 main :: IO ()
 main = do
@@ -35,4 +35,4 @@ main = do
     print "Part 1:"
     print $ length (part1 eggnog input)
     print "Part 2:"
-    print $  (part2 eggnog input)
+    print $ length (part2 eggnog input)
