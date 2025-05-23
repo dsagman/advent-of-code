@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 -- Start by setting your lights to the included initial configuration (your puzzle input). A # means "on", and a . means "off".
 
 -- The state a light should have next is based on its current state (on or off) plus the number of neighbors that are on:
@@ -54,11 +53,15 @@
 
 -- In your grid of 100x100 lights, given your initial configuration, how many lights are on after 100 steps?
 
-import Data.Array.Unboxed ( (!), (//), UArray, array)
-import qualified Data.Array.Unboxed as A
+-- import Data.Array ( (!), (//), Array, array)
+-- import qualified Data.Array as A
+import Data.Array.Unboxed ( (!), (//), UArray, Array, array, indices, bounds, elems)
+-- import qualified Data.Array as A
+
 
 type XY = (Int, Int)
 type Grid = UArray XY Bool
+type Nbors = Array XY [XY]
 
 charToBool :: Char -> Bool
 charToBool c = case c of
@@ -77,6 +80,11 @@ addBorder size xs = replicate size '.' ++
                     concatMap (\x -> '.' : x ++ ".") (lines xs) ++
                     replicate size '.'
 
+nborsArray :: Grid -> Nbors 
+nborsArray arr = array ((0,0),(size, size)) $
+                 zip (indices arr) [nbors size xy | xy <- indices arr]
+    where size = (snd . snd . bounds) arr
+
 nbors :: Int -> XY -> [XY]
 nbors size (x,y)
     | x == 0    || y == 0    = []
@@ -89,16 +97,16 @@ numOn = length . filter id
 
 -- A light which is on stays on when 2 or 3 neighbors are on, and turns off otherwise.
 -- A light which is off turns on if exactly 3 neighbors are on, and stays off otherwise.
-live :: Int -> XY -> Grid -> Bool
-live size xy@(x,y) arr
+live :: XY -> Grid -> Nbors -> Bool
+live xy@(x,y) arr nArr
     | s && (n == 2 || n == 3) = True
     | not s && n == 3         = True
     | otherwise               = False
-    where !s = arr ! xy
-          !n = numOn [arr ! nb | nb <- nbors size xy]
+    where s = arr ! xy
+          n = numOn [arr ! nb | nb <- nArr ! xy]
 
-live2 :: Int -> XY -> Grid -> Bool
-live2 size xy@(x,y) arr
+live2 :: XY -> Grid -> Nbors -> Bool
+live2 xy@(x,y) arr nArr
     | x == 1 && y == 1               = True
     | x == (size-1) && y == (size-1) = True
     | x == 1 && y == (size-1)        = True
@@ -106,11 +114,11 @@ live2 size xy@(x,y) arr
     | s && (n == 2 || n == 3) = True
     | not s && n == 3         = True
     | otherwise               = False
-    where !s = arr ! xy
-          !n = numOn [arr ! nb | nb <- nbors size xy]
+    where s = arr ! xy
+          n = numOn [arr ! nb | nb <- nArr ! xy]
+          size = (snd . snd . bounds) arr
 
-update :: (A.IArray a e, A.Ix t1) => (t2 -> t1 -> a t1 e -> e, t2) -> a t1 e -> a t1 e
-update (f,size) arr = arr // [ (xy, f size xy arr) | xy <- A.indices arr ]
+update (f,nArr) arr = arr // [ (xy, f xy arr nArr) | xy <- indices arr ]
 
 main :: IO ()
 main = do
@@ -119,14 +127,15 @@ main = do
     input <- readFile "./2015/day18/day.txt"
     let size = 2 + minimum (map length (lines input))
     let lights = parseLights size (addBorder size input)
-    -- mapM_ displayGrid (size-1) $ take 100 life
     print "Answer Part 1:"
-    let life = iterate (update (live,size-1)) lights
-    print $ numOn . A.elems $ (life !! 100)
+    let lightNbors = nborsArray lights
+    let life = iterate (update (live,lightNbors)) lights 
+    -- mapM_ (displayGrid (size-1)) $ take 10 life
+    print $ numOn . elems $ (life !! 100)
 
     print "Answer Part 2:"
-    let life2 = iterate (update (live2,size-1)) lights
-    print $ numOn . A.elems $ (life2 !! 100)
+    let life2 = iterate (update (live2,lightNbors)) lights
+    print $ numOn . elems $ (life2 !! 100)
 
 
 displayGrid :: Int -> Grid -> IO ()
@@ -136,4 +145,5 @@ displayGrid size arr = do
     putStrLn ""
   where
     row y = [ boolToChar (arr ! (x, y)) | x <- [0..size] ]
+
 
