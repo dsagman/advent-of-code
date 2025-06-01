@@ -30,59 +30,43 @@ What is the lowest house number of the house to get at least as many presents as
 
 -- Your puzzle input is 29000000.
 import Data.List 
+import Math.NumberTheory.ArithmeticFunctions
+-- import qualified Math.NumberTheory.Primes.IntSet as S
+import qualified Data.Set.Internal as S
 
-data Wheel = Wheel Integer [Integer]
 
+myInput :: Int
 myInput = 29000000
+
+
+s1 :: Int -> Int
+s1 = sigma 1
+
+s2 :: Int -> Int
+s2 n = (sum . S.filter (\x -> n `div` x <= 50) . divisors) n  
+
+-- ChatGPT about 25% faster
+s2' :: Int -> Int
+s2' n =
+  let c        = n `div` 50
+      small    = sum $ divisorsTo (c-1) n  -- strictly < cut
+      allSum   = sigma 1 n                 -- σ₁(n)
+  in  allSum - small
 
 main :: IO ()
 main = do
-
-    -- let part1 = takeWhile (<(myInput `div` 10)) $ map a000203 [2..]
-    let part1 = takeWhile (<=2900000) $ map a000203 [2..]
-
+    let part1 = ((1+) 
+                . length 
+                . takeWhile (<=(myInput `div` 10)) 
+                . map s1) [1..]
 
     print "Part 1 Answer:"
-    print $ length part1
+    print part1
+
+    let part2 = ((1+) 
+                . length 
+                . takeWhile (<=(myInput `div` 11)) 
+                . map s2) [1..]
+    print "Part 2 Answer:"
+    print part2
     print "----------"
-
-a000203 n = product $ 
-            zipWith (\p e -> (p^(e+1)-1) `div` (p-1)) 
-                    (a027748_row n) 
-                    (a124010_row n)    
-
--- a027748 n k = a027748_tabl !! (n-1) !! (k-1)
--- a027748_tabl = map a027748_row [1..]
-a027748_row 1 = [1]
-a027748_row n = unfoldr fact n where
-   fact 1 = Nothing
-   fact x = Just (p, until ((> 0) . (`mod` p)) (`div` p) x)
-            where p = a020639 x  -- smallest prime factor of x
-
-a020639 n = spf a000040_list where
-  spf (p:ps) | n < p^2      = n
-             | mod n p == 0 = p
-             | otherwise    = spf ps
-
-a000040 n = genericIndex a000040_list (n - 1)
-
-a000040_list = base ++ larger where
-    base = [2, 3, 5, 7, 11, 13, 17]
-    larger = p : filter prime more
-    prime n = all ((> 0) . mod n) $ takeWhile (\x -> x*x <= n) larger
-    _ : p : more = roll $ makeWheels base
-    roll (Wheel n rs) = [n * k + r | k <- [0..], r <- rs]
-    makeWheels = foldl nextSize (Wheel 1 [1])
-    nextSize (Wheel size bs) p = Wheel (size * p) [r | k <- [0..p-1], b <- bs, let r = size*k+b, mod r p > 0]
-
-a124010 n k = a124010_tabf !! (n-1) !! (k-1)
-
-a124010_row 1 = [0]
-a124010_row n = f n a000040_list where
-   f 1 _      = []
-   f u (p:ps) = h u 0 where
-     h v e | m == 0 = h v' (e + 1)
-           | m /= 0 = if e > 0 then e : f v ps else f v ps
-           where (v', m) = divMod v p
-
-a124010_tabf = map a124010_row [1..]
