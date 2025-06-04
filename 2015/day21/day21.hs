@@ -70,7 +70,6 @@ rings =
      Item {name = "Defense +2"   , cost = 40, damage = 0, armor = 2},
      Item {name = "Defense +3"   , cost = 80, damage = 0, armor = 3}]
 
-
 itemSets :: [Item]
 itemSets = [Item {name   = name w ++ ", " ++ 
                            name a ++ ", " ++ 
@@ -107,6 +106,7 @@ minWinCost :: Int
 minWinCost = (minimum . map snd . filter fst) $ 
             zip (map wins players) (map pCost players)
 
+maxLoseCost :: Int
 maxLoseCost = (maximum . map snd . filter (not . fst)) $ 
             zip (map wins players) (map pCost players)
 
