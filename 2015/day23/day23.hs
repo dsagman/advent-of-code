@@ -60,8 +60,7 @@ strToInt xs = let x = read (tail xs) :: Int in
 
 runP :: [(String, String)] -> Int -> Int -> Int -> (Int, Int, Int)
 runP program regA regB pc = 
-    let instr = program !? pc in
-    case instr of
+    case program !? pc of
         Just x -> let (newA, newB, newPC) = eval x regA regB pc in
                     -- trace ("PC = "++ show pc) $ 
                     runP program newA newB newPC
@@ -73,8 +72,6 @@ main = do
     program <- fmap (\x -> (take 3 x, drop 4 x)) 
             . lines 
             <$> readFile "./2015/day23/day.txt"
-    -- print program
-    -- let p = program
 
     let result@(regA, regB, pc) = runP program 0 0 0
     _ <- result `seq` hFlush stderr   -- flush trace output 
