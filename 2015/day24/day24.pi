@@ -65,7 +65,7 @@ assign_bins(Weights, Bins, NBins, QE) =>
         Sums[S] #= Sums[S+1]
     end,
 
-    % Bin 1 has smallest length, and none are empty
+    % Bin 1 has smallest length
     Lens = new_array(NBins),
     foreach(B in 1..NBins)
         sum([(Bins[I] #= B) : I in 1..N]) #= Lens[B]
@@ -75,5 +75,6 @@ assign_bins(Weights, Bins, NBins, QE) =>
         Lens[1] #< Lens[L]
     end.
     % QE is product of weights in bin 1
+    % the line below does not do what is expected. instead it causes invalid result with an empty bin.
     % QE #= prod([Weights[J]: J in 1..N, Bins[J]#=1]).
 
