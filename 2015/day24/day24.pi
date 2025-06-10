@@ -43,7 +43,7 @@ main =>
 go(Weights, Target, Q) =>
     assign_bin1(Weights, Target, Bins, QE, L1),
     solve($[min(L1), min(QE), 
-              report(printf("Found %d, %d %w\n", L1, QE, Bins))],
+              report(printf("Found %w, %w %w\n", L1, QE, Bins))],
               Bins),
     Bin1Weights = [Weights[I]: I in 1..Weights.length, Bins[I]==0],
     printf("Bin 1: %w\n",Bin1Weights),
