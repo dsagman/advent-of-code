@@ -33,48 +33,36 @@
 import cp.
 
 main => 
-    Weights = {1, 2, 3, 4, 5, 7, 8, 9, 10, 11}, 
-    NBins = 3,
-    assign_bins(Weights, Bins, NBins, QE),
-    println(QE),
-    Results = solve_all(Bins),
+    % Weights = {1, 2, 3, 4, 5, 7, 8, 9, 10, 11}, 
+    Weights = {1,2,3,7,11,13,17,19,23,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113},
 
-    BinWeights = new_list(NBins),
-    R1 = Results[1],
-    println(R1),
-    foreach (I in 1..NBins)
-        BinWeights[I] = [Weights[J]: J in 1..Weights.length, R1[J]==I]
-    end,
-    println(BinWeights),
-    foreach(R in Results),
-        writeln(R)
-    end,
-    writeln(len(Results)).
+    go(Weights, sum(Weights)//3, 1),
+    printf("\n"),
+    go(Weights, sum(Weights)//4, 2).
+    
 
-assign_bins(Weights, Bins, NBins, QE) =>
+go(Weights, Target, Q) =>
+    assign_bin1(Weights, Target, Bins, QE, L1),
+    solve($[min(L1), min(QE), 
+              report(printf("Found %d, %d %w\n", L1, QE, Bins))],
+              Bins),
+    Bin1Weights = [Weights[I]: I in 1..Weights.length, Bins[I]==0],
+    printf("Bin 1: %w\n",Bin1Weights),
+    printf("Answer Part %d: %w\n",Q,prod(Bin1Weights)).
+
+assign_bin1(Weights, Target, Bins, QE, L1) =>
     N = length(Weights),
     Bins = new_array(N),
-    Bins :: 1..NBins,
+    Bins :: 0..1,
 
-    % Weights of bins are the same
-    Sums = new_array(NBins),
-    foreach(B in 1..NBins)
-        sum([W*(Bins[I] #= B) : I in 1..N, W = Weights[I]]) #= Sums[B]
-    end,
-    foreach(S in 1..(NBins-1))
-        Sums[S] #= Sums[S+1]
-    end,
+    Bin1Sum #= sum([Weights[I]*(Bins[I] #= 0) : I in 1..N]),
+    Bin1Sum #= Target,
+    L1 #= sum([(Bins[I] #= 0) : I in 1..N]), % Minimize L1 = Bin 1 length
+    QE #= prod([max(1,W*(Bins[I]#=0)) : I in 1..N, W = Weights[I]]). % Minimize QE = product of weights in bin 1
 
-    % Bin 1 has smallest length
-    Lens = new_array(NBins),
-    foreach(B in 1..NBins)
-        sum([(Bins[I] #= B) : I in 1..N]) #= Lens[B]
-        % Lens[B] #!= 0  % the all weights are the same should ensure this
-    end,
-    foreach(L in 2..NBins)
-        Lens[1] #< Lens[L]
-    end.
-    % QE is product of weights in bin 1
-    % the line below does not do what is expected. instead it causes invalid result with an empty bin.
-    % QE #= prod([Weights[J]: J in 1..N, Bins[J]#=1]).
 
+%part1
+% 11846773891
+
+%part2
+% 80393059
