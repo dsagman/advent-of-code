@@ -40,7 +40,6 @@ main =>
     printf("\n"),
     go(Weights, sum(Weights)//4, 2).
     
-
 go(Weights, Target, Q) =>
     assign_bin1(Weights, Target, Bins, QE, L1),
     solve($[min(L1), min(QE), 
@@ -54,7 +53,6 @@ assign_bin1(Weights, Target, Bins, QE, L1) =>
     N = length(Weights),
     Bins = new_array(N),
     Bins :: 0..1,
-
     Bin1Sum #= sum([Weights[I]*(Bins[I] #= 0) : I in 1..N]),
     Bin1Sum #= Target,
     L1 #= sum([(Bins[I] #= 0) : I in 1..N]), % Minimize L1 = Bin 1 length
