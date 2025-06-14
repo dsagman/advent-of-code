@@ -35,21 +35,24 @@ import cp.
 main => 
     % Weights = {1, 2, 3, 4, 5, 7, 8, 9, 10, 11}, 
     Weights = {1,2,3,7,11,13,17,19,23,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113},
-
-    go(Weights, sum(Weights)//3, 1),
+    time(go_kn(Weights,sum(Weights)//3, 1)),
     printf("\n"),
-    go(Weights, sum(Weights)//4, 2).
+    time(go(Weights, sum(Weights)//3, 1)),
+    printf("\n"),
+    time(go_kn(Weights, sum(Weights)//4, 2)),
+    printf("\n"),
+    time(go(Weights, sum(Weights)//4, 2)).
     
-go(Weights, Target, Q) =>
-    assign_bin1(Weights, Target, Bins, QE, L1),
-    solve($[min(L1), min(QE), 
-              report(printf("Found %w, %w %w\n", L1, QE, Bins))],
+go(Weights,Target,Q) =>
+    assign_bin1(Weights,Target,Bins,QE,L1),
+    solve($[min(L1), min(QE)], 
+            %   report(printf("Found %w, %w %w\n", L1, QE, Bins))],
               Bins),
     Bin1Weights = [Weights[I]: I in 1..Weights.length, Bins[I]==0],
     printf("Bin 1: %w\n",Bin1Weights),
-    printf("Answer Part %d: %w\n",Q,prod(Bin1Weights)).
+    printf("CP Answer Part %d: %w\n",Q,prod(Bin1Weights)).
 
-assign_bin1(Weights, Target, Bins, QE, L1) =>
+assign_bin1(Weights,Target,Bins,QE,L1) =>
     N = length(Weights),
     Bins = new_array(N),
     Bins :: 0..1,
@@ -58,9 +61,23 @@ assign_bin1(Weights, Target, Bins, QE, L1) =>
     L1 #= sum([(Bins[I] #= 0) : I in 1..N]), % Minimize L1 = Bin 1 length
     QE #= prod([max(1,W*(Bins[I]#=0)) : I in 1..N, W = Weights[I]]). % Minimize QE = product of weights in bin 1
 
+go_kn(Weights,Target,Q) =>
+    knapsack(to_list(Weights),Target,Sack,Val),
+    printf("Bin 1: %w\n",Sack),
+    printf("Table Answer Part %d: %w\n",Q,second(Val)).
 
-%part1
-% 11846773891
+% knapsack modified from https://picat-lang.org/picatbook2015/constraint_solving_and_planning_with_picat.pdf
+% Val = (Length of Sack, QE)
+% Item is a list of weights
 
-%part2
-% 80393059
+table(+,+,-,min)
+knapsack(_,C,Sack,Val), C<=0 =>
+    Sack = [], Val = (1,1).
+knapsack([_|L],C,Sack,Val), C > 0 ?=>
+    knapsack(L,C,Sack,Val).
+knapsack([IWeight|L],C,Sack,Val), C >= IWeight =>
+    Sack = [IWeight|Sack1],
+    knapsack(L,C-IWeight,Sack1,Val1),
+    Val = (first(Val1)+1,second(Val1)*IWeight).
+
+
