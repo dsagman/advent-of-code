@@ -113,8 +113,8 @@ import planner.
 main =>
 
     problem(S),
-    Initial = [S,0,0,0], % [Player, Boss], Shield, Poison, Recharge
-    time(best_plan_unbounded(Initial,Plan,PlanCost)),
+    Initial = [S,7,0,0], % [Player, Boss], Shield, Poison, Recharge
+    time(best_plan(Initial,Plan,PlanCost)),
     foreach (Step in Plan)
         println(Step)
     end,
@@ -146,7 +146,6 @@ final(S@[[HP, _, _, BHP, _], _, _, _]),
         BHP <= 0
          => true.
 
-
 % state 
 %   [[player HP, mana, armor, boss, HP], Shield, Poison, Recharge]
 % spell   mana  damage   heal   effect
@@ -162,8 +161,8 @@ action(S@[[HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],NextS,Actio
     if (Shield > 0) (NShield = 7, del(SS,"shield")) else (NShield = 0) end,
     if (Poison > 0) (Pdamage = 3, del(SS,"poison")) else (Pdamage = 0) end,
     if (Recharge > 0) (Mana := Mana + 101, del(SS,"recharge")) end,
-        % member(Spell, to_list(SS)),
-    select(Spell, to_list(SS), _),
+        member(Spell, to_list(SS)),
+    % select(Spell, to_list(SS), _),
     % println(SS),
     % println((Spell[1],"->",Spell[2])),
     Cost = Spell[2],
