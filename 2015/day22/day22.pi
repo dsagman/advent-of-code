@@ -113,8 +113,11 @@ import planner.
 main =>
 
     problem(S),
-    Initial = [S,7,0,0], % [Player, Boss], Shield, Poison, Recharge
+    Initial = [S,0,0,0], % [Player, Boss], Shield, Poison, Recharge
     time(best_plan(Initial,Plan,PlanCost)),
+    % time(best_plan_unbounded(Initial,Plan,PlanCost)),
+    % time(best_plan_bb(Initial,Plan,PlanCost)),
+
     foreach (Step in Plan)
         println(Step)
     end,
@@ -124,27 +127,67 @@ main =>
 
 problem(S) => 
     S = [10,250,0,13,8].  % 10 HP, 250 mana, 0 armor, boss 13 HP and 8 damage
-    % S = [10,250,14,8].  % 10 HP, 250 mana, 0 armor, boss 14 HP and 8 damage
+    % S = [10,250,0,14,8].  % 10 HP, 250 mana, 0 armor, boss 14 HP and 8 damage
 
-% spells(SS) =>
-%     SS = [["missle", 53],
-%           ["drain", 73],
-%           ["shield", 113],
-%           ["poison", 173],
-%           ["recharge", 229]].
 
-spells(SS) =>
-    SS = new_map(["missle"=53,
-          "drain"=73,
-          "shield"=113,
-          "poison"=173,
-          "recharge"=229]).
-
-% should this be >?
-final(S@[[HP, _, _, BHP, _], _, _, _]), 
-        HP >= 0,                    
+final(State@[[HP, _, _, BHP, _], _, _, _]), 
+    printf("Final: HP %w, BHP %w\n", HP, BHP),
+        HP > 0,                    
         BHP <= 0
          => true.
+
+
+action(State@[[HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],NextS,Action,Cost) =>
+    % HP > 0,
+    println("--------"),
+    printf("Start of turn: HP %w, Mana %w, BHP %w\n",HP,Mana,BHP),
+    printf("Start of turn Effects: Poison %w, Shield %w, Recharge %w\n", Poison, Shield, Recharge),
+
+    % player turn
+    if (Recharge > 0) (Mana := Mana + 101) end, 
+
+    Spells = [["missle", 53], ["drain", 73]],
+    if (Shield <= 1)   (Spells := Spells ++ [["shield", 113]]) end,
+    if (Poison <= 1)   (Spells := Spells ++ [["poison", 173]]) end,
+    if (Recharge <= 1) (Spells := Spells ++ [["recharge", 229]]) end,
+    printf("Possible spells: %w\n", Spells),
+    select([Spell,SpellMana],Spells,_),
+
+    printf("Spell selected: %w, Mana: %w \n", Spell, SpellMana),
+    SpellMana <= Mana,
+    NMana := Mana - SpellMana,
+    
+    Action = Spell,
+    Damage := 0,
+    if (Spell == "missle")  (Damage := 4) end,
+    if (Spell == "drain")   (Damage := 2, NHP := HP+2) end, % this is wrong, can heal beyond base HP
+    if (Spell == "shield")  (Shield := 6) end,
+    if (Spell == "poison")  (Poison := 6) end,
+    if (Spell == "recharge")(Recharge := 5) end,
+
+    % apply shield and poison this turn
+    if (Shield > 0) (ShieldEffect = 7) else (ShieldEffect = 0) end,
+    if (Poison > 0) (PoisonEffect = 3) else (PoisonEffect = 0) end,
+    
+    NBHP = (BHP-Damage)-PoisonEffect,
+    printf("Attack: NBHP %w = BHP %w - Damage %w - PoisonEffect %w\n", NBHP, BHP, Damage, PoisonEffect),
+    
+    % boss turn
+    if (NBHP > 0)
+    (NHP := min([HP-BDamage+Armor+ShieldEffect,HP])) % HP can't go up
+    else
+    (NHP := 9999) % player wins because boss is dead
+    end,
+
+    NHP > 0,
+    printf("End of turn: NHP %w, NMana %w, NBHP %w\n", NHP, NMana, NBHP),
+    printf("End of turn Effects: Poison %w, Shield %w, Recharge %w\n", Poison, Shield, Recharge),
+    Cost = SpellMana,
+    NextS = [[NHP, NMana, Armor, NBHP, BDamage], 
+            max([Shield-1,0]), 
+            max([Poison-1,0]), 
+            max([Recharge-1,0])].
+
 
 % state 
 %   [[player HP, mana, armor, boss, HP], Shield, Poison, Recharge]
@@ -154,43 +197,27 @@ final(S@[[HP, _, _, BHP, _], _, _, _]),
 % shield   113                  +7 armor for 6 turns
 % poison   173                  3 damage for 6 turns
 % recharge 229                  +101 mana for 5 turns
-action(S@[[HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],NextS,Action,Cost) =>
-    % player turn
-    % println(S),
-    spells(SS),
-    if (Shield > 0) (NShield = 7, del(SS,"shield")) else (NShield = 0) end,
-    if (Poison > 0) (Pdamage = 3, del(SS,"poison")) else (Pdamage = 0) end,
-    if (Recharge > 0) (Mana := Mana + 101, del(SS,"recharge")) end,
-        member(Spell, to_list(SS)),
-    % select(Spell, to_list(SS), _),
-    % println(SS),
-    % println((Spell[1],"->",Spell[2])),
-    Cost = Spell[2],
-    Cost <= Mana,
-    Action = Spell[1],
-    Damage = 0,
 
-    if (Spell[1] == "missle")  (Damage := 4) end,
-    if (Spell[1] == "drain")   (Damage := 2, NHP = HP+2) end,
-    if (Spell[1] == "shield")  (Shield = 6) end,
-    if (Spell[1] == "poison")  (Poison = 6) end,
-    if (Spell[1] == "recharge")(Recharge = 5) end,
+% spells(SS) =>
+%     SS = new_map(["missle"=53,
+%           "drain"=73,
+%           "shield"=113,
+%           "poison"=173,
+%           "recharge"=229]).
 
-    NBHP = BHP-Damage-Pdamage,
+    % println(map_to_list(SS)),
+    % if (Shield > 0) (del(SS,"shield")) end,
+    % if (Poison > 0) (del(SS,"poison")) end,
+    % if (Recharge > 0) (Mana := Mana + 101, del(SS,"recharge")) end,
+    % member(S, map_to_list(SS)),
+    % Spell = S[1],
+    % Cost = S[2],
 
-    % boss turn
-    if (NBHP > 0)
-        (NHP = min([HP-BDamage+Armor+NShield,HP]))
-    else
-        (NHP = 9999)
-    end,
-
-    NHP >= 0,
-    NMana = Mana - Cost,
-    printf("NHP %w, NMana %w, NBHP %w, Spell %w, Cost %w\n", NHP, NMana, NBHP, Spell[1], Cost),
-    NextS = [[NHP, NMana, Armor, NBHP, BDamage], 
-            max([Shield-1,0]), 
-            max([Poison-1,0]), 
-            max([Recharge-1,0])].
+% spells(SS) =>
+%     SS = [["missle", 53],
+%           ["drain", 73],
+%           ["shield", 113],
+%           ["poison", 173],
+%           ["recharge", 229]].
 
 
