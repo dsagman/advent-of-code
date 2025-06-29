@@ -1,12 +1,6 @@
 % On each of your turns, you must select one of your spells to cast. If you cannot afford to cast any spell, you lose. Spells cost mana; you start with 500 mana, but have no maximum limit. You must have enough mana to cast a spell, and its cost is immediately deducted when you cast it. Your spells are Magic Missile, Drain, Shield, Poison, and Recharge.
 
-%     Magic Missile costs 53 mana. It instantly does 4 damage.
-%     Drain costs 73 mana. It instantly does 2 damage and heals you for 2 hit points.
-%     Shield costs 113 mana. It starts an effect that lasts for 6 turns. While it is active, your armor is increased by 7.
-%     Poison costs 173 mana. It starts an effect that lasts for 6 turns. At the start of each turn while it is active, it deals the boss 3 damage.
-%     Recharge costs 229 mana. It starts an effect that lasts for 5 turns. At the start of each turn while it is active, it gives you 101 new mana.
-
-% Effects all work the same way. Effects apply at the start of both the player's turns and the boss' turns. Effects are created with a timer (the number of turns they last); at the start of each turn, after they apply any effect they have, their timer is decreased by one. If this decreases the timer to zero, the effect ends. You cannot cast a spell that would start an effect which is already active. However, effects can be started on the same turn they end.
+% Since you're a wizard, you don't get to wear armor, and you can't attack normally. However, since you do magic damage, your opponent's armor is ignored, and so the boss effectively has zero armor as well. As before, if armor (from a spell, in this case) would reduce damage below 1, it becomes 1 instead - that is, the boss' attacks always deal at least 1 damage.
 
 % For example, suppose the player has 10 hit points and 250 mana, and that the boss has 13 hit points and 8 damage:
 
@@ -105,6 +99,8 @@
 % Poison costs 173 mana. It starts an effect that lasts for 6 turns. At the start of each turn while it is active, it deals the boss 3 damage.
 % Recharge costs 229 mana. It starts an effect that lasts for 5 turns. At the start of each turn while it is active, it gives you 101 new mana.
 
+% Effects all work the same way. Effects apply at the start of both the player's turns and the boss' turns. Effects are created with a timer (the number of turns they last); at the start of each turn, after they apply any effect they have, their timer is decreased by one. If this decreases the timer to zero, the effect ends. You cannot cast a spell that would start an effect which is already active. However, effects can be started on the same turn they end.
+
 % You start with 50 hit points and 500 mana points. The boss's actual stats are in your puzzle input. What is the least amount of mana you can spend and still win the fight? (Do not include mana recharge effects as "spending" negative mana.)
 import planner.
 import math.
@@ -128,49 +124,49 @@ main =>
     printf("Part 2 answer = mana cost: %w\n", PlanCost2).
 
 problem(S) => 
-    % S = [10,10,250,0,13,8]. % Example 1: 10 Max HP, 10 HP, 250 mana, 0 armor, boss 13 HP and 8 damage
-    % S = [10,10,250,0,14,8]. % Example 2: 10 Max HP, 10 HP, 250 mana, 0 armor, boss 14 HP and 8 damage
-    S = [50,50,500,0,55,8].  % Puzzle: 10 Max HP, 10 HP, 250 mana, 0 armor, boss 14 HP and 8 damage
+    % S = [10,10,250,13,8]. % Example 1: 10 Max HP, 10 HP, 250 mana, boss 13 HP and 8 damage
+    % S = [10,10,250,14,8]. % Example 2: 10 Max HP, 10 HP, 250 mana, boss 14 HP and 8 damage
+    S = [50,50,500,55,8].  % Puzzle: 10 Max HP, 10 HP, 250 mana, boss 14 HP and 8 damage
 
 
-final(State@[_,[_, HP, Mana, _, BHP, _], _, _, _, _]), HP > 0, BHP <= 0 => true.
+final(State@[_,[_, HP, Mana, BHP, _], _, _, _, _]), HP > 0, BHP <= 0 => true.
 
 % Play Turn 0
-action(State@[0,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge, Mode],NextS,Action,Cost) =>
+action(State@[0,[MaxHP, HP, Mana, BHP, BDamage], Shield, Poison, Recharge, Mode],NextS,Action,Cost) =>
     HP := HP - Mode, 
     Mana := Mana + (101 * sign(Recharge)), % apply recharge 
 
-    Spells = [["missle", 53], ["drain", 73]],
+    Spells = [["missile", 53], ["drain", 73]],
     if (Shield <= 1)   (Spells := Spells ++ [["shield", 113]]) end,
     if (Poison <= 1)   (Spells := Spells ++ [["poison", 173]]) end,
-    if (Recharge <= 1) (Spells := Spells ++ [["recharge", 229]]) end,
-    ValidSpells = [[S,M] : [S,M] in Spells, M <= Mana],
-    member([Spell,SpellMana],ValidSpells),
+    if (Recharge <= 1) (Spells := Spells ++ [["recharge", 229]]) end, 
+    member([Spell,SpellMana],Spells), 
+    SpellMana <= Mana,
     NMana := Mana - SpellMana,
-    
-    Damage := 0,
-    if (Spell == "missle")  (Damage := 4) end,
-    if (Spell == "drain")   (Damage := 2, HP := min(HP+2, MaxHP)) end, % can't heal beyond base HP
-    if (Spell == "shield")  (Shield := 6) end,
-    if (Spell == "poison")  (Poison := 6) end,
-    if (Spell == "recharge")(Recharge := 5+1) end, %+1 because it starts on next turn
-    
-    NBHP = (BHP-Damage)-(3 * sign(Poison)), % apply damange and poison
+
+    (
+     Spell == "missile"  , BHP := BHP - 4; 
+     Spell == "drain"    , BHP := BHP - 2, HP := min(HP+2, MaxHP); 
+     Spell == "shield"   , Shield := 6; 
+     Spell == "poison"   , Poison := 6; 
+     Spell == "recharge" , Recharge := 5 + 1
+    ),
+    NBHP = BHP - (3 * sign(Poison)), % apply poison
     
     Action = [State, Spell],
     Cost = SpellMana,
-    NextS = [1,[MaxHP, HP, NMana, Armor, NBHP, BDamage], 
+    NextS = [1,[MaxHP, HP, NMana, NBHP, BDamage], 
             max([Shield-1,0]), max([Poison-1,0]), max([Recharge-1,0]), Mode].
 
 % Boss Turn 1
-action(State@[1,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge, Mode],NextS,Action,Cost) =>    
+action(State@[1,[MaxHP, HP, Mana, BHP, BDamage], Shield, Poison, Recharge, Mode],NextS,Action,Cost) =>    
     Mana := Mana + (101 * sign(Recharge)), % apply recharge 
     NBHP = BHP-(3 * sign(Poison)), % apply poison 
-    NHP = min([HP-BDamage+Armor+(7 * sign(Shield)),HP]), % % apply shield, HP can't go up
-    NHP >= 0,
+    NHP = HP - max([BDamage-(7 * sign(Shield)),1]), % min damage = 1
+    NHP > 0,
     Action = [State, boss],
     Cost = 0,
-    NextS = [0,[MaxHP, NHP, Mana, Armor, NBHP, BDamage], 
+    NextS = [0,[MaxHP, NHP, Mana, NBHP, BDamage], 
             max([Shield-1,0]), max([Poison-1,0]), max([Recharge-1,0]), Mode].
 
 % spell   mana  damage   heal   effect
