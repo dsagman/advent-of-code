@@ -162,7 +162,6 @@ action(State@[0,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge
     NextS = [1,[MaxHP, HP, NMana, Armor, NBHP, BDamage], 
             max([Shield-1,0]), max([Poison-1,0]), max([Recharge-1,0]), Mode].
 
-
 % Boss Turn 1
 action(State@[1,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge, Mode],NextS,Action,Cost) =>    
     Mana := Mana + (101 * sign(Recharge)), % apply recharge 
