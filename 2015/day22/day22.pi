@@ -130,14 +130,15 @@ problem(S) =>
     S = [10,10,250,0,14,8].  % 10 Max HP, 10 HP, 250 mana, 0 armor, boss 14 HP and 8 damage
 
 
-final(State@[_,[_, HP, _, _, BHP, _], _, _, _]), 
-    printf("Final: HP %w, BHP %w\n", HP, BHP),
+final(State@[_,[_, HP, Mana, _, BHP, _], _, _, _]), 
+    % printf("Final: HP %w, Mana %w, BHP %w\n", HP, Mana, BHP),
+    println(State),
         HP > 0,                    
         BHP <= 0
          => true.
 
 % Play Turn 0
-action([0,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],NextS,Action,Cost) =>
+action(State@[0,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],NextS,Action,Cost) =>
     % apply recharge to mana before selecting spell
     if (Recharge > 0) (Mana := Mana + (101)) end, 
 
@@ -152,14 +153,13 @@ action([0,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],Next
     % printf("Spell selected: %w, Mana: %w \n", Spell, SpellMana),
     NMana := Mana - SpellMana,
     
-    Action = Spell,
     Damage := 0,
     if (Spell == "missle")  (Damage := 4) end,
-    if (Spell == "drain")   (Damage := 2, HP := max(HP+2, MaxHP)) end, % can't heal beyond base HP
+    if (Spell == "drain")   (Damage := 2, HP := min(HP+2, MaxHP)) end, % can't heal beyond base HP
     if (Spell == "shield")  (Shield := 6) end,
     if (Spell == "poison")  (Poison := 6) end,
     if (Spell == "recharge")(Recharge := 5) end,
-
+    
     % apply poison this turn
     % if (Shield > 0) (ShieldEffect = 7) else (ShieldEffect = 0) end,
     if (Poison > 0) (PoisonEffect = 3) else (PoisonEffect = 0) end,
@@ -168,6 +168,8 @@ action([0,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],Next
     % printf("End of turn: Spell %w, Spell cost %w\n", Spell, SpellMana),
     % printf("End of turn: NHP %w, NMana %w, NBHP %w\n", NHP, NMana, NBHP),
     % printf("End of turn Effects: Poison %w, Shield %w, Recharge %w\n", Poison, Shield, Recharge),
+    % Action = Spell,
+    Action = [State, Spell],
     Cost = SpellMana,
     NextS = [1,[MaxHP, HP, NMana, Armor, NBHP, BDamage], 
             max([Shield-1,0]), 
@@ -176,55 +178,40 @@ action([0,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],Next
 
 
 % Boss Turn 1
-action([1,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],NextS,Action,Cost) =>
+action(State@[1,[MaxHP, HP, Mana, Armor, BHP, BDamage], Shield, Poison, Recharge],NextS,Action,Cost) =>
     
     % println("--------"),
     % printf("Start of turn: HP %w, Mana %w, BHP %w\n",HP,Mana,BHP),
     % printf("Start of turn Effects: Poison %w, Shield %w, Recharge %w\n", Poison, Shield, Recharge),
 
-    % player turn
-    % apply recharge to mana before selecting spell
+    % apply recharge to mana
     if (Recharge > 0) (Mana := Mana + (101)) end, 
-
-    % Spells = [["missle", 53], ["drain", 73]],
-    % if (Shield <= 1)   (Spells := Spells ++ [["shield", 113]]) end,
-    % if (Poison <= 1)   (Spells := Spells ++ [["poison", 173]]) end,
-    % if (Recharge <= 1) (Spells := Spells ++ [["recharge", 229]]) end,
-    % ValidSpells = [[S,M] : [S,M] in Spells, M <= Mana],
-    % printf("Possible spells: %w\n", Spells),
-    % printf("Afforable spells: %w\n", ValidSpells),
-    % select([Spell,SpellMana],ValidSpells,_),
-
-    % printf("Spell selected: %w, Mana: %w \n", Spell, SpellMana),
-    % SpellMana <= Mana,
-    % NMana := Mana,
     
-    Action = "Boss Turn",
-    % Damage := 0,
-    % if (Spell == "missle")  (Damage := 4) end,
-    % if (Spell == "drain")   (Damage := 2, HP := HP+2) end, % this is wrong, can heal beyond base HP
-    % if (Spell == "shield")  (Shield := 6) end,
-    % if (Spell == "poison")  (Poison := 6) end,
-    % if (Spell == "recharge")(Recharge := 5) end,
-
-    % apply shield and poison this turn
+    % apply shield and poison 
     if (Shield > 0) (ShieldEffect = 7) else (ShieldEffect = 0) end,
     if (Poison > 0) (PoisonEffect = 3) else (PoisonEffect = 0) end,
     
     NBHP = BHP-PoisonEffect,
     % printf("Attack: NBHP %w = BHP %w - Damage %w - PoisonEffect %w\n", NBHP, BHP, Damage, PoisonEffect),
-    NHP := min([HP-BDamage+Armor+ShieldEffect,HP]), % HP can't go up
+    NHP = min([HP-BDamage+Armor+ShieldEffect,HP]), % HP can't go up
     NHP >= 0,
     % printf("End of turn: Spell %w, Spell cost %w\n", Spell, SpellMana),
     % printf("End of turn: NHP %w, NMana %w, NBHP %w\n", NHP, NMana, NBHP),
     % printf("End of turn Effects: Poison %w, Shield %w, Recharge %w\n", Poison, Shield, Recharge),
+    % Action = "Boss Turn",
+    Action = [State, boss],
     Cost = 0,
     NextS = [0,[MaxHP, NHP, Mana, Armor, NBHP, BDamage], 
             max([Shield-1,0]), 
             max([Poison-1,0]), 
             max([Recharge-1,0])].
 
-
+% spell   mana  damage   heal   effect
+% missle    53      4       
+% drain     73      2       2
+% shield   113                  +7 armor for 6 turns
+% poison   173                  3 damage for 6 turns
+% recharge 229                  +101 mana for 5 turns
 
 
 
