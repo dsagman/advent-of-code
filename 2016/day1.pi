@@ -21,9 +21,7 @@ part1(Dirs) = Loc =>
     end,
     (X,Y) = Loc.
 
-
 part2(Dirs) = Loc => Loc = find_first_repeat(0,(0,0),[],Dirs).
-
 
 find_first_repeat(_,_,_,[]) = R => R = []. % not found
 find_first_repeat(Facing,Loc,Visited,[(D,N)|Ds]) = R =>
@@ -38,7 +36,6 @@ find_first_repeat(Facing,Loc,Visited,[(D,N)|Ds]) = R =>
 
 first_repeat([],Xs) = R => R = [].
 first_repeat([H|T],Xs) = R => if (membchk(H,Xs)) then (R=H) else (R=first_repeat(T,Xs)).
-
 
 % compass 0 = N, 1 = E, 2 = S, 3 = W
 move(0,(X,Y),N) = (X,Y+N).
