@@ -1,0 +1,55 @@
+import util.
+
+main =>
+    % Data = "R8, R4, R4, R8", % test data
+    Data = to_string(read_file_chars("day.txt")),
+    Dirs = [(head(S).to_lowercase,tail(S).to_int) : Xs in split(Data,","), S = strip(Xs)],
+    
+    (X1,Y1) = part1(Dirs),
+    printf("Part 1 Answer %w\n",abs(X1)+abs(Y1)),
+
+    (X2,Y2) = part2(Dirs),
+    printf("Part 2 Answer %w\n",abs(X2)+abs(Y2)).
+
+part1(Dirs) = Loc =>
+    Facing = 0,
+    Loc = (0,0),
+    foreach((D,N) in Dirs)
+        Facing := turn(D,Facing),
+        Loc := move(Facing,Loc,N),
+        % printf("Turn: %w, Now Facing: %w, Walk %w, Loc %w\n", D, Facing, N, Loc)
+    end,
+    (X,Y) = Loc.
+
+
+part2(Dirs) = Loc => Loc = find_first_repeat(0,(0,0),[],Dirs).
+
+
+find_first_repeat(_,_,_,[]) = R => R = []. % not found
+find_first_repeat(Facing,Loc,Visited,[(D,N)|Ds]) = R =>
+	Facing := turn(D,Facing),
+	NewLocs = visits(Facing,Loc,N),
+	FR = first_repeat(NewLocs,Visited),
+	if (len(FR) > 0) then
+		R = FR
+	else
+		R = find_first_repeat(Facing,last(NewLocs),Visited++NewLocs,Ds)
+	end.
+
+first_repeat([],Xs) = R => R = [].
+first_repeat([H|T],Xs) = R => if (membchk(H,Xs)) then (R=H) else (R=first_repeat(T,Xs)).
+
+
+% compass 0 = N, 1 = E, 2 = S, 3 = W
+move(0,(X,Y),N) = (X,Y+N).
+move(1,(X,Y),N) = (X+N,Y).
+move(2,(X,Y),N) = (X,Y-N).
+move(3,(X,Y),N) = (X-N,Y).
+
+turn(r,D) = (D + 1) mod 4.
+turn(l,D) = (D - 1) mod 4.
+
+visits(0,(X,Y),N) = [(X,Y+I) : I in 1..N].
+visits(1,(X,Y),N) = [(X+I,Y) : I in 1..N].
+visits(2,(X,Y),N) = [(X,Y-I) : I in 1..N].
+visits(3,(X,Y),N) = [(X-I,Y) : I in 1..N].
