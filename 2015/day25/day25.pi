@@ -1,0 +1,26 @@
+% Enter the code at row 2978, column 3083.
+import math.
+
+main =>
+    Code = 20151125,
+    MaxX = 3083,
+    MaxY = 2978,
+    Target = xy_to_idx(MaxX,MaxY),
+    foreach (N in 1..Target-1)
+        Code := (Code * 252533) mod 33554393
+    end,
+    printf("Answer Part 1: %w\n",Code).
+
+% With thanks to ChatGPT for these
+
+xy_to_idx(X,Y) = R => R = to_int(((X+Y-2)*(X+Y-1))/2+X).
+
+% idx_to_xy(N) = R =>
+%     %  Find the diagonal number d such that T_{d-1} < n ≤ T_d
+%     D = ceiling((sqrt(8 * N + 1) - 1) / 2),
+%     %  Compute the number of elements before diagonal d
+%     TriBefore = (D - 1) * D // 2,
+%     Offset = N - TriBefore,
+%     X = Offset,
+%     Y = D - Offset + 1,
+%     R = (X,Y).
