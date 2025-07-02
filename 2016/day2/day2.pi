@@ -1,0 +1,23 @@
+main =>
+	Data = read_file_lines("day.txt"),
+	println(Data),
+	Loc = (0,0),
+	Code = [],
+	foreach(Line in Data)
+		Loc := move_steps(Line,Loc),
+		Code := Code ++ [button(Loc)]
+	end,
+	printf("Answer part 1: %w",Code).
+
+button((X,Y)) = 3*(1-Y)+X+2.
+
+move_steps([],Loc) = Loc.
+move_steps([S|Ss],Loc) = move_steps(Ss,move(S,Loc)).
+
+move('U',(X,Y)) = (X,min([Y+1,1])).
+move('D',(X,Y)) = (X,max([Y-1,-1])).
+move('L',(X,Y)) = (max([X-1,-1]),Y).
+move('R',(X,Y)) = (min([X+1,1]),Y).
+
+
+
