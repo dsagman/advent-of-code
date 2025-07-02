@@ -1,21 +1,19 @@
 main =>
 	% Data = read_file_lines("test.txt"),
 	Data = read_file_lines("day.txt"),
-	Loc = (0,0),
-	Code = "",
-	foreach(Line in Data)
-		Loc := move_steps(Line,Loc,move1),
-		Code := Code ++ [button1(Loc)]
-	end,
-	printf("Answer part 1: %w\n",Code.to_string),
+
+	Part1 = go(Data,(0,0),move1,button1),
+	printf("Answer part 1: %w\n",Part1.to_string),
 	
-	Loc := (0,4),
+	Part2 = go(Data,(0,4),move2,button2),
+	printf("Answer part 2: %w\n",Part2.to_string.to_uppercase).
+
+go(Data,Loc,Move,Button) = Code =>
 	Code := "",
 	foreach(Line in Data)
-			Loc := move_steps(Line,Loc,move2),
-			Code := Code ++ [button2(Loc)]
-	end,
-	printf("Answer part 2: %w\n",Code.to_string.to_uppercase).
+		Loc := move_steps(Line,Loc,Move),
+		Code := Code ++ [apply(Button,Loc)]
+	end.
 
 move_steps([],Loc,_) = Loc.
 move_steps([S|Ss],Loc,F) = move_steps(Ss,apply(F,S,Loc),F).
