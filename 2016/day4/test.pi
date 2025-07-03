@@ -1,0 +1,5 @@
+main =>
+    println(5<10), % 5 < 10
+    println(apply(<,5,10)), %*** Undefined procedure: @< /2
+    println(call(<,5,10)), %*** Undefined procedure: @< /2
+    println(a@<b). % *** Undefined procedure: @< /2

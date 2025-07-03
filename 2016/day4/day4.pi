@@ -7,38 +7,48 @@
 % import basic.
 import util.
 
+% alphabet(A,Z) = [chr(C): C in ord(A)..ord(Z)].
+% println(alphabet('a','z')),
+
 main =>
-    Data = map(strip,read_file_lines("test.txt")),
-    % Data = read_file_lines("day.txt"),
+    % Data = read_file_lines("test.txt"),
+    Data = read_file_lines("day.txt"),
     Sum = 0,
     foreach(D in Data)
         (Name,Id,Check) = parse(D),
-        printf(" %w %w\n",Id,Check),
-        V = is_valid(Name,Id,Check),
-        if V then (Sum:=Sum+Id) end
+        Sum := Sum + valid_id(Name,Id,Check),
     end,
     println(Sum).
 
-is_valid(Name,Id,Check) = V =>
-    Counts = [count_all(member(C,Name)) : C in Check],
-    NameDiff = [A-B : {A,B} in zip(Counts,slice(Counts,2))],
-    CheckDiff = [apply($@<,A,B) : {A,B} in zip(Check,slice(Check,2))],
-    printf("%w %w\n", NameDiff, CheckDiff),
-    V = true.
+valid_id(Name,Id,Check) = V =>
+    NameCounts= ([[N,Ns] : N in sort_remove_dups(Name), Ns = count_all(member(N,Name))]).sort_down(2),    
+    NameVals = [N[2] : N in NameCounts].sort_down_remove_dups, 
+    TrueCheckSum = [[X : X in NameCounts, X[2]=NV].sort(1) : NV in NameVals].flatten.take(10),
     
+    TestCheckSum = [[C,Cs] : C in Check, Cs = count_all(member(C,Name))].flatten,
+    
+    V = cond((TrueCheckSum==TestCheckSum),Id,0).
+
+
+
+
+% 137896
+
 parse(D) = (Name,Id,Check) =>
-    Split = D.length-9,
-    Name = slice(D,1,Split-2),
-    Id = slice(D,Split,Split+2).to_int,
-    Check = slice(D,Split+4,Split+8).
+    S = split(D.strip, "-"),
+    Name = slice(S, 1, S.length-1).flatten,
+    Id = slice(S.last,1,3).to_int,
+    Check = slice(S.last,5,9).
+
+% S = delete_all(D.strip, '-'),
+    % Split = D.length-9,
+    % Name = slice(D,1,Split-2),
+    % Id = slice(D,Split,Split+2).to_int,
+    % Check = slice(D,Split+4,Split+8).
 
 
 
 
 
 
-    % S = delete_all(D.strip, '-'),
-    % S = split(D.strip, "-"),
-    % Name = slice(S, 1, S.length-1).flatten,
-    % Id = slice(S.last,1,3),
-    % Check = slice(S.last,5,10).
+
