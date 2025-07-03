@@ -4,11 +4,7 @@
 % not-a-real-room-404[oarel] is a real room.
 % totally-real-room-200[decoy] is not.
 
-% import basic.
 import util.
-
-% alphabet(A,Z) = [chr(C): C in ord(A)..ord(Z)].
-% println(alphabet('a','z')),
 
 main =>
     % Data = read_file_lines("test.txt"),
@@ -18,21 +14,16 @@ main =>
         (Name,Id,Check) = parse(D),
         Sum := Sum + valid_id(Name,Id,Check),
     end,
-    println(Sum).
+    printf("Part 1 Answer: %w",Sum).
 
 valid_id(Name,Id,Check) = V =>
-    NameCounts= ([[N,Ns] : N in sort_remove_dups(Name), Ns = count_all(member(N,Name))]).sort_down(2),    
+    NameCounts = ([[N,Ns] : N in sort_remove_dups(Name), Ns = count_all(member(N,Name))]).sort_down(2),    
     NameVals = [N[2] : N in NameCounts].sort_down_remove_dups, 
     TrueCheckSum = [[X : X in NameCounts, X[2]=NV].sort(1) : NV in NameVals].flatten.take(10),
     
     TestCheckSum = [[C,Cs] : C in Check, Cs = count_all(member(C,Name))].flatten,
     
     V = cond((TrueCheckSum==TestCheckSum),Id,0).
-
-
-
-
-% 137896
 
 parse(D) = (Name,Id,Check) =>
     S = split(D.strip, "-"),
