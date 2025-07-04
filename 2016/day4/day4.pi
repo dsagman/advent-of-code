@@ -10,20 +10,19 @@ main =>
     % Data = read_file_lines("test.txt"),
     Data = read_file_lines("day.txt"),
     Sum = 0,
+    Part2 = [],
     foreach(D in Data)
         (Name,Id,Check) = parse(D),
         Sum := Sum + valid_id(Name,Id,Check),
+        Decode = caesar(Name,Id),
+        (call(find, Decode, "north", From, To);From=0,To=0),
+        if (From>0) (Part2 := Part2 ++ [(Id,Decode)]) end
     end,
-    printf("Part 1 Answer: %w",Sum).
-
-valid_id(Name,Id,Check) = V =>
-    NameCounts = ([[N,Ns] : N in sort_remove_dups(Name), Ns = count_all(member(N,Name))]).sort_down(2),    
-    NameVals = [N[2] : N in NameCounts].sort_down_remove_dups, 
-    TrueCheckSum = [[X : X in NameCounts, X[2]=NV].sort(1) : NV in NameVals].flatten.take(10),
-    
-    TestCheckSum = [[C,Cs] : C in Check, Cs = count_all(member(C,Name))].flatten,
-    
-    V = cond((TrueCheckSum==TestCheckSum),Id,0).
+    printf("Part 1 Answer: %w\n",Sum),
+    println("Part 2 Answer:"),
+    foreach((Id,Decode) in Part2)
+        (printf("ID: %w, %w\n",Id,Decode))
+    end.
 
 parse(D) = (Name,Id,Check) =>
     S = split(D.strip, "-"),
@@ -31,11 +30,14 @@ parse(D) = (Name,Id,Check) =>
     Id = slice(S.last,1,3).to_int,
     Check = slice(S.last,5,9).
 
-% S = delete_all(D.strip, '-'),
-    % Split = D.length-9,
-    % Name = slice(D,1,Split-2),
-    % Id = slice(D,Split,Split+2).to_int,
-    % Check = slice(D,Split+4,Split+8).
+valid_id(Name,Id,Check) = V =>
+    NameCounts = ([[N,Ns] : N in sort_remove_dups(Name), Ns = count_all(member(N,Name))]).sort_down(2),    
+    NameVals = [N[2] : N in NameCounts].sort_down_remove_dups, 
+    TrueCheckSum = [[X : X in NameCounts, X[2]=NV].sort(1) : NV in NameVals].flatten.take(10),
+    TestCheckSum = [[C,Cs] : C in Check, Cs = count_all(member(C,Name))].flatten,
+    V = cond((TrueCheckSum==TestCheckSum),Id,0).
+
+caesar(Name,Id) = [chr(((N-96+Id) mod 26)+96) : N in Name.map(atom_codes).flatten].
 
 
 

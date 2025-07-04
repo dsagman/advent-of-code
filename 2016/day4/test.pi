@@ -1,5 +1,17 @@
 main =>
     println(5<10), % 5 < 10
-    println(apply(<,5,10)), %*** Undefined procedure: @< /2
-    println(call(<,5,10)), %*** Undefined procedure: @< /2
+    println(apply(<,5,10)), %**** Undefined procedure: < /2
+    println(call(<,5,10)), %*** Undefined procedure: call/3<
     println(a@<b). % *** Undefined procedure: @< /2
+
+% Picat 3.8#7, (C) picat-lang.org, 2013-2025
+% Type 'help' for help.
+
+% Picat> apply(<,5,10).
+% *** Undefined procedure: apply/3
+
+% Picat> call(<,5,10).
+% yes
+
+% Picat> a@<b.
+% yes
