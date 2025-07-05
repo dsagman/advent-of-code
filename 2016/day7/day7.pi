@@ -1,0 +1,48 @@
+import util.
+
+main =>
+    % Data = read_file_lines("test.txt"),
+	Data = read_file_lines("day.txt").strip,
+    Part1 = 0,
+    Part2 = 0,
+    foreach (D in Data)
+        [P1,P2] = parse(D),
+        if (check(P1)=true && check(P2)=false) then Part1:=Part1+1 end,
+        Match = [[I,O] : I in check2(P2), O in check2(P1).map(invert), I=O],
+        if Match!=[] then Part2:=Part2+1 end
+    end,
+    printf("Part 1 Answer: %w\n",Part1),
+    printf("Part 2 Answer: %w\n",Part2).
+
+parse(L) = go(L,0,[[],[]]).
+
+go([],_,P) = R => R = P.map(reverse).
+go([H|T],State,P@[P1,P2]) = R =>
+        ( 
+            H = '[', R = go(T,1,[[H|P1],P2]); % get on down, like a state machine
+            H = ']', R = go(T,0,[P1,[H|P2]]);
+            State = 0, R = go(T,0,[[H|P1],P2]);
+            State = 1, R = go(T,1,[P1,[H|P2]])
+        ).
+
+check(L) = R, (L.length<4) => R  = false.
+    check([A,B,C,D|T]) = R => 
+        if (A==D && B==C && A!=B) 
+    then R = true 
+        else R = check([B,C,D|T]) end.
+    
+check2(L) = R, (L.length<3) => R = [].
+check2(L@[A,B,C|T]) = R =>
+    % println(L),
+    if (A==C && A!=B && B!='[' && B!=']')
+    then R = [[A,B,C]]++check2([B,C|T])
+    else R = check2([B,C|T]) end.
+
+invert([A,B,A]) = [B,A,B].
+
+
+% nope, multiple []   
+% parse(L) = Parsed =>
+%     nth(I1,L,'['), % Prolog-style predicate
+%     nth(I2,L,']'),
+%     Parsed = [slice(L,1,I1-1),slice(L,I1+1,I2-1),slice(L,I2+1)].
