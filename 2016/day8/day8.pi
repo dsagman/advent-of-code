@@ -1,0 +1,54 @@
+% rect 3x2 
+% rotate column x=1 by 1
+% rotate row y=0 by 4
+import util.
+
+main =>
+    Data = read_file_lines("test.txt").map(strip),
+    % Data = read_file_lines("day.txt").map(strip),
+    foreach (D in Data)
+        R = parse(D),
+        println(R)
+    end,
+    % H = 6,
+    % W = 50,
+    H = 3,
+    W = 7,
+    Grid = init(H,W),
+
+
+    display(Grid).
+
+parse(L) = R =>
+    Ls = L.split(" "),
+    println(Ls),
+    (
+    membchk("rect",Ls), R = [rec]++Ls[2].split("x");
+    membchk("row",Ls), N = Ls[3].split("="),R = [row]++[N.last]++[Ls[5]];
+    membchk("column",Ls), N = Ls[3].split("="),R = [col]++[N.last]++[Ls[5]]
+   ). 
+
+% init(Y,X) = {'.' : Y in 1..Y, X in 1..X}.
+init(Y,X) = G => 
+    G = new_array(Y,X),
+    bind_vars(G,'0').
+
+
+display(G) =>
+    foreach (Y in 1..G.len)
+        println(G[Y])
+    end.
+
+    % foreach (Y1 in 1..G.len, X1 in 1..G[1].len)
+    %     % println((Y1,X1))
+    %         G[Y1,X1]:=0
+    % end.
+
+     % change column
+    % foreach (Y in 1..H)
+    %     Grid[Y,5] := '*'
+    % end,
+    % change row
+    % foreach (X in 1..W)
+    %     Grid[2,X] := '*'
+    % end,
