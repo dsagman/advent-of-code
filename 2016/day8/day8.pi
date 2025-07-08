@@ -67,14 +67,11 @@ row(G,Y,By) =>
     G[Y+1]:= NewRow.
     
 col(G,X,By) => 
-    NewG = G.transpose,
-    row(NewG,X,By),
-    G := NewG.transpose.
-    % dim(G,H,W),
-    % NewCol = [G[((Y-1-By) mod H)+1,X+1] : Y in 1..H], % 1 indexed
-    % foreach (Y in 1..H)
-    %     G[Y,X+1] := NewCol[Y]
-    % end.
+    dim(G,H,W),
+    NewCol = [G[((Y-1-By) mod H)+1,X+1] : Y in 1..H], % 1 indexed
+    foreach (Y in 1..H)
+        G[Y,X+1] := NewCol[Y]
+    end.
 
 parse(L) = R =>
     Ls = L.split(" "),

@@ -1,0 +1,35 @@
+% This fails on part 2 because the decompressed string is too large.
+
+import util.
+
+main =>
+    % Data = read_file_lines("test.txt").head,
+    % Data = "(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN",
+    Data = read_file_lines("day.txt").head,
+    cl_facts([$part(1)]), % a global fact
+    printf("Part 1 Answer: %w\n",parse(Data).len),
+    cl_facts([$part(2)]), % override global fact
+    printf("Part 2 Answer: %w\n",parse(Data).len).
+
+table
+parse([]) = [].
+parse([H|T]) = R =>
+    if H = '(' then (R = parse1(T)) else (R = [H] ++ parse(T)) end.
+
+table
+parse1(L) = R =>
+    Ix = find_first_of(L,'x'),
+    Ip = find_first_of(L,')'),
+    M = take(L,Ix-1).to_int, % chars to take
+    N = slice(L,Ix+1,Ip-1).to_int, % repeats
+    part(Part),
+    if (Part = 1) 
+        then HH = slice(L,Ip+1,Ip+M) % string to repeat
+        else HH = parse(slice(L,Ip+1,Ip+M)) % recursive parse
+    end,
+    TT = slice(L,Ip+1+M),    % tail to leave
+    R = dup_n(HH,N)++parse(TT).
+
+table
+dup_n(_,0) = [].
+dup_n(L,N) = L ++ (dup_n(L,N-1)).
