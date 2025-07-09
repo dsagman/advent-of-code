@@ -1,0 +1,44 @@
+import util. 
+
+main => 
+	% Data = read_file_lines("test.txt").map(split),	
+	Data = read_file_lines("day.txt").map(split),
+	Steps = Data.map(parse),
+	init_bots(Steps,Bots,Bins),
+	Part2 = step([S : S in Steps, S[1]=$gives],Bots,Bins).to_list.take(3).map(dec).prod, % dec -> picat is 1 indexed
+	printf("Answer Part 2: %w\n",Part2). 
+
+init_bots(Steps,Bots,Bins) =>
+	MaxBot = max([B : S in Steps, B=S[2]]),
+	Bots = new_array(MaxBot), bind_vars(Bots,[-1,-1]),
+	Bins = new_array(MaxBot), 
+	foreach (S in Steps)
+		if S[1] = $goes then goes(S[2],S[3],Bots) end
+	end.
+									
+step([],_,Bins) = R => R = Bins.
+step(Steps,Bots,Bins) = R =>
+	nth(I,Bots,[VL,VH]), VL>0, VH>0,
+	if (VL=17+1 && VH=61+1) then printf("Answer Part 1: %w\n",I-1) end,
+	member([$gives,I,WL,BL,WH,BH],Steps),
+	gives(I,WL,BL,WH,BH,Bots,Bins),
+	R = step(delete(Steps,[$gives,I,WL,BL,WH,BH]),Bots,Bins).
+	
+goes(Bot,V,Bots) =>
+	Bots[Bot] = [VL,VH],
+	if V > VH then Bots[Bot] := [VH,V] else Bots[Bot] := [V,VH] end.
+	
+gives(Bot,WL,BL,WH,BH,Bots,Bins) =>
+	Bots[Bot] = [VL,VH],
+	Bots[Bot] := [-1,-1],
+	if WL = "bot" then goes(BL,VL,Bots) else Bins[BL] := VL end,
+	if WH = "bot" then goes(BH,VH,Bots) else Bins[BH] := VH end.
+
+parse(L) = R =>
+	if L[1] = "value" 
+	then R = [$goes,L[6].inc,L[2].inc]   %goes bot value
+	else R = [$gives,L[2].inc,L[6],L[7].inc,L[11],L[12].inc] %gives bot where low where high.
+	end.
+
+inc(X) = X.to_int+1. % need to increment bot nums, picat 1 indexed
+dec(X) = X-1.
