@@ -2,10 +2,12 @@ import util.
 
 main => 
 	% Data = read_file_lines("test.txt").map(split),	
-	Data = read_file_lines("day.txt").map(split),
-	Steps = Data.map(parse),
+	% Data = read_file_lines("day.txt").map(split),
+	Steps = ("day.txt").read_file_lines.map(split).map(parse),
+	% Steps = Data.map(parse),
 	init_bots(Steps,Bots,Bins),
-	Part2 = step([S : S in Steps, S[1]=$gives],Bots,Bins).to_list.take(3).map(dec).prod, % dec -> picat is 1 indexed
+	% Part2 = step([S : S in Steps, S[1]=$gives],Bots,Bins).to_list.take(3).map(dec).prod, % dec -> picat is 1 indexed
+	Part2 = ([S : S in Steps, S[1]=$gives],Bots,Bins).step.to_list.take(3).map(dec).prod, % dec -> picat is 1 indexed
 	printf("Answer Part 2: %w\n",Part2). 
 
 init_bots(Steps,Bots,Bins) =>
