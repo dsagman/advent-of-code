@@ -1,0 +1,29 @@
+% The first floor contains a hydrogen-compatible microchip 
+% and a lithium-compatible microchip.
+% The second floor contains a hydrogen generator.
+% The third floor contains a lithium generator.
+% The fourth floor contains nothing relevant.
+import planner.
+import util.
+
+main =>
+    %         HM,HG   LiM LiG
+    TProb = [[1 , 2],[ 2 , 3]],
+    Floors = 4,
+    Gen = TProb.columns.last,
+println(TProb.columns.last),
+if membchk(2,Gen) then println("yes") else println("no") end,
+println(TProb.rows).
+    % time2(best_plan_bb(TProb,Plan,PlanCost)), 
+    % foreach (Step in Plan)
+    %     println(Step)
+    % end,
+    % printf("Part 1 solution length: %w\n", length(Plan)).
+
+final(State), State.flatten.sum = 16 => true.
+
+% action(State,NextS,Action,Cost) =>
+%     % no molecule on the same level as another generator
+%     %   if not attached to its generator
+%     foreach ([Mol,Gen] in State)
+%        (Mol == Gen || % Mol not equal to any other generator)
