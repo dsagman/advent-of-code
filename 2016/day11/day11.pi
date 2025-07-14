@@ -3,27 +3,168 @@
 % The second floor contains a hydrogen generator.
 % The third floor contains a lithium generator.
 % The fourth floor contains nothing relevant.
+
+% My input
+% The first floor contains a polonium generator, a thulium generator, a thulium-compatible microchip, a promethium generator, a ruthenium generator, a ruthenium-compatible microchip, a cobalt generator, and a cobalt-compatible microchip.
+% The second floor contains a polonium-compatible microchip and a promethium-compatible microchip.
+% The third floor contains nothing relevant.
+% The fourth floor contains nothing relevant.
+
+% part2
+% Upon entering the isolated containment area, however, you notice some extra parts on the first floor that weren't listed on the record outside:
+
+%     An elerium generator.
+%     An elerium-compatible microchip.
+%     A dilithium generator.
+%     A dilithium-compatible microchip.
+
+
 import planner.
 import util.
 
-main =>
-    %         HM,HG   LiM LiG
-    TProb = [[1 , 2],[ 2 , 3]],
-    Floors = 4,
-    Gen = TProb.columns.last,
-println(TProb.columns.last),
-if membchk(2,Gen) then println("yes") else println("no") end,
-println(TProb.rows).
-    % time2(best_plan_bb(TProb,Plan,PlanCost)), 
-    % foreach (Step in Plan)
-    %     println(Step)
+% key items 
+%   - unbounded search (depth first)
+%   - Item2 < Item1
+%   - extract move 
+%   - get rid of len
+%   - extract Gen slice
+%   - action is nothing
+%   - ++[0] instead of [0]++
+%   - table everywhere
+%   - counter function instead of membchk
+%   - only bring up two and down one item (ChatGPT)
+%   - only create item2 if move = 1 (see above)
+%   - only go down if items below (ChatGPT)
+% didn't help
+%   - removing duplicate states
+%   - heuristic
+
+% part1 47: 45 sec -> 0.35 sec (plugged in)
+% part2 71: 285 sec -> 22 sec
+
+main =>    
+    % test, requires 11 moves   
+    % TMol = [1,1], %H, Li
+    % TGen = [2,3],  %HGen, LiGen
+
+    % part 1, requires 47 moves
+    TMol = [2,1,2,1,1],  %Po, Tm, Pm, Ru, Co
+    TGen = [1,1,1,1,1],  %Po, Tm, Pm, Ru, Co
+
+    % part 2
+    % TMol = [2,1,2,1,1,1,1],  %Po, Tm, Pm, Ru, Co, El, Di
+    % TGen = [1,1,1,1,1,1,1],  %Po, Tm, Pm, Ru, Co, El, Di    
+
+    N = TMol.len,
+    TProb = [1,N,(TMol ++ TGen)], % elevator on ground floor
+    % time2(best_plan_bb(TProb,Plan)), % 0.36 sec
+    % time2(best_plan(TProb,Plan)), % 1 sec
+    % time2(best_plan_bin(TProb,Plan)), % 1 sec
+    % time2(best_plan_nondet(TProb, Plan)), % 1 sec
+    time2(best_plan_unbounded(TProb,Plan)), % 45 sec -> 13 sec ->11 sec -> 8 sec -> 3.5 sec -> 0.35 sec
+    printf("Part 1 solution length: %w\n", length(Plan)).
+
+final(State@[E,N,Items]), Items.sum == 4*2*N => true. % all 4th floor
+
+table
+action(State@[E,N,Items],NextS,Action,Cost) =>
+    [NewE,NewItems] = get_move(E,N,Items),
+    Action = [],
+    NextS = [NewE,N,NewItems],
+    Cost = 1.
+
+% table
+% heuristic(State@[E,N,Items]) = Dist =>
+%     Dist = (4*2*N)-Items.sum.
+
+% table
+% heuristic(State@[E,N,Items]) = Dist => Dist = max([8-It[I]-It[I+N] : I in 1..N]).
+
+table
+get_move(E,N,Items) = [NewE,NewItems] =>
+    N2 = N*2,
+    if min(Items) >= E 
+    then Move = 1 
+    else member(Move,[-1,1]) end,
+    NewE = E+Move, NewE >0, NewE <=4, % elevator moves
+
+    FloorItems = [I : I in 1..N2, Items[I]==E],
+    member(Item1, FloorItems),
+    
+    NewItems = copy_term(Items),
+    NewItems[Item1] := Items[Item1]+Move,
+
+    if Move = 1 % always try to bring up two / down one item
+    then member(Item2, FloorItems), 
+         Item2 < Item1,
+         NewItems[Item2] := Items[Item2]+Move
+    end,
+
+    Gen = slice(NewItems,1+N),
+    NewGBF = counter(Gen),
+
+    foreach (I in 1..N)
+       NewItems[I] = NewItems[I+N]; % mol attached to its generator OR
+       NewGBF[NewItems[I]] = 0
+    %    not membchk(NewItems[I], Gen) % not on same floor as another generator
+    end.
+
+table
+counter(L) = R =>
+    R = [0,0,0,0],
+    foreach(X in L)
+        % R[X] := R[X] + 1
+        R[X] := 1
+    end.
+
+
+% counter([H|T],C) => C[H]:=C[H]+1
+
+% table
+% check_move(N,NewItems) =>
+%     Gen = slice(NewItems,1+N),
+%     foreach (I in 1..N)
+%        NewItems[I] == NewItems[I+N]; % molecule attached to its generator OR
+%        not membchk(NewItems[I], Gen) % not on same floor as to any other generator
+%     end.
+
+
+% safe_move(Item1,0,Move,N,Items), Item1>N =>  % one gen move
+%     Items[Item1-N] != Items[Item1];
+%     count_all(member(Items[Item1],slice(Items,1+N))) ==1.
+% safe_move(Item1,Item2,Move,N,Items), Item2>N =>  %two gen move
+%     (Items[Item1-N] != Items[Item1];   
+% count_all(member(Items[Item1],slice(Items,1+N))) ==1),
+%     (Items[Item2-N] != Items[Item2];
+%     count_all(member(Items[Item2],slice(Items,1+N))) ==1).
+
+
+% safe_move(Item1,0,Move,N,Items), Item1<=N =>  % one mol move
+%    Items[Item1]+Move==Items[Item1+N];
+%    not membchk(Items[Item1]+Move,slice(Items,1+N)).
+% safe_move(Item1,Item2,Move,N,Items), Item1<=N => % two mols move
+%    (Items[Item1]+Move==Items[Item1+N];
+%    not membchk(Items[Item1]+Move,slice(Items,1+N))),
+%    (Items[Item2]+Move==Items[Item2+N];
+%    not membchk(Items[Item2]+Move,slice(Items,1+N))).
+
+% safe_move(Item1,Item2,Move,N,Items) => % one mol, one gen
+%    (Items[Item2]+Move==Items[Item2+N];
+%     Item2+N=Item1;  %mol and gen in elevator
+%     not membchk(Items[Item2]+Move,slice(Items,1+N))).
+ 
+ % did not help
+    % NewGBF = copy_term(GBF),
+    % if Item1 > N then
+    %     NewGBF[Items[Item1]] := NewGBF[Items[Item1]]-1,
+    %     NewGBF[NewItems[Item1]] := NewGBF[NewItems[Item1]]+1
     % end,
-    % printf("Part 1 solution length: %w\n", length(Plan)).
+    % if Item2 > N then
+    %     NewGBF[Items[Item2]] := NewGBF[Items[Item2]]-1,
+    %     NewGBF[NewItems[Item2]] := NewGBF[NewItems[Item2]]+1
+    % end,
 
-final(State), State.flatten.sum = 16 => true.
 
-% action(State,NextS,Action,Cost) =>
-%     % no molecule on the same level as another generator
-%     %   if not attached to its generator
-%     foreach ([Mol,Gen] in State)
-%        (Mol == Gen || % Mol not equal to any other generator)
+    % DeDup = [[[I,I+N],[Items[I],Items[I+N]]]: I in 1..N, (Items[I]==E || Items[I+N]==E)].sort_remove_dups(2).map(first).flatten,
+
+    % FloorItems = [I : I in DeDup, Items[I]==E],
