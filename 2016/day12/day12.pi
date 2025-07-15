@@ -1,0 +1,42 @@
+import util.
+main => 
+    % Program = read_file_lines("test").map(split).map(parse),
+    Program = read_file_lines("day.txt").map(split).map(parse),
+
+    Part1 = run(Program,new_map(["a"=0,"b"=0,"c"=0,"d"=0]),1),
+    printf("Answer Part 1: %w\n",get(Part1, "a")),
+
+    Part2 = run(Program,new_map(["a"=0,"b"=0,"c"=1,"d"=0]),1),
+    printf("Answer Part 2: %w\n",get(Part2, "a")).
+
+run(Program,S,PC) = NewS =>
+    while (between(1,Program.len,PC))
+        [Op,Args] = Program[PC],
+        PC := apply(Op,Args,S,PC),
+        % println([Op,Args,S,PC]),
+        % if PC >= 17 then C = read_char() end,
+    end,
+    NewS = S.
+
+parse([H|T]) = [(H).to_atom,T.map(parse_nums)].
+parse_nums(X) = Xn => 
+    if between(97,122,ord(X[1])) then Xn = X else Xn = X.to_int end.
+
+cpy([X,Y],S,PC) = NPC=> 
+    NPC = PC+1,
+    if number(X) 
+        then put(S,Y,X)
+        else V = get(S,X), put(S,Y,V)
+    end.
+inc([X],S,PC) = NPC => 
+    NPC = PC+1,
+    V = get(S,X), put(S,X,V+1).
+dec([X],S,PC) = NPC => 
+    NPC = PC+1,
+    V = get(S,X), put(S,X,V-1).
+jnz([X,Y],S,PC) = NPC => 
+    if number(X) then Xn = X else Xn = get(S,X) end,
+    if Xn != 0 
+        then NPC = PC+Y,
+        else NPC = PC+1
+    end.

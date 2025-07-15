@@ -100,7 +100,7 @@
 %   - Item2 < Item1
 %   - extract move 
 %   - get rid of len
-%   - extract Gen slice
+%   - extract and then remove Gen slice
 %   - action is nothing
 %   - ++[0] instead of [0]++
 %   - counter function instead of membchk
