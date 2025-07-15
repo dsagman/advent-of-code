@@ -129,11 +129,11 @@ import util.
 
 main =>    
     % example, requires 11 moves, fails on two up/one down speedup
-    % MolE = [1,1], %H, Li
-    % GenE = [2,3],  %HGen, LiGen
-    % ProbE = [1,MolE.len,zip(MolE,GenE).sort], % elevator on ground floor
-    % time2(best_plan_unbounded(ProbE,PlanE)), 
-    % printf("Example solution length: %w\n", length(PlanE)),
+    MolE = [1,1], %H, Li
+    GenE = [2,3],  %HGen, LiGen
+    ProbE = [1,MolE.len,zip(MolE,GenE).sort], % elevator on ground floor
+    time2(best_plan_unbounded(ProbE,PlanE)), 
+    printf("Example solution length: %w\n", length(PlanE)),
 
     % part 1
     Mol1 = [2,1,2,1,1],  %Po, Tm, Pm, Ru, Co
@@ -176,9 +176,10 @@ get_move(E,N,Items) = [NewE,NewItems] =>
 
     % 0.3x  speedup
     if Move = 1 % always try to bring up two / down one item
-    then member(Item2, FloorItems), 
+    then member(Item2, FloorItems++[0]), 
          Item2 < Item1,
-         NewItems[Item2] := FlatItems[Item2]+Move
+         if Item2 > 0 then
+            NewItems[Item2] := FlatItems[Item2]+Move end
     end,
 
     NewGBF = counter(NewItems), % generators by floor
