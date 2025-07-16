@@ -1,0 +1,22 @@
+main =>
+    I = 10,
+    printf("%w\n","  0123456789"),
+    foreach(Y in 0..9) 
+        printf("%w ",Y),
+        foreach(X in 0..9)
+            if f(X,Y,I) then Wall = "." else Wall = "#" end,
+            printf("%w",Wall)
+        end,
+        printf("\n")
+    end.
+
+f(X,Y,I) => even((X*X + 3*X + 2*X*Y + Y + Y*Y + I).to_binary_string.map(to_int).sum).
+
+%   0123456789
+% 0 .#.####.##
+% 1 ..#..#...#
+% 2 #....##...
+% 3 ###.#.###.
+% 4 .##..#..#.
+% 5 ..##....#.
+% 6 #...##.###
