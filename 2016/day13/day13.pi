@@ -1,16 +1,63 @@
+import planner.
+
 main =>
-    I = 10,
-    printf("%w\n","  0123456789"),
-    foreach(Y in 0..9) 
+    % I = 10,       % example
+    % End = [7,4],  % example
+    I = 1358,       % part 1
+    End = [31,39],  % part 1
+
+    print_maze(9,9,I),
+
+    Start = [1,1],
+    S = [Start] ++ [End] ++ [I],
+    time(best_plan(S, Plan, Cost)), % .017 sec
+    printf("Answer Part 1: %w\n",Cost),
+
+    % Part 2, reach within 50 steps
+    R = reachable(50,Start,I),
+    println((R,R.len)),
+    printf("Answer Part 2: %w\n","Not yet!").
+
+reachable(Steps,[X1,Y1],I) = R =>
+    Rplus = [[X1+X,Y1+Y] : X in 0..Steps, Y in 0..Steps, X+Y<=Steps],
+    Rminus = [[X1-X,Y1-Y] : X in 0..Steps, Y in 0..Steps, X+Y<=Steps, (X1-X) >=0, (Y1-Y) >=0],
+    R = [[X,Y] : [X,Y] in sort_remove_dups(Rplus ++ Rminus), f(X,Y,I)].
+
+final([Loc,End,_]), Loc = End => true.
+
+action(S@[[X,Y],End,I],NextS,Action,Cost) =>
+    member(DX,-1..1), member(DY,-1..1),
+    if abs(DX) = 1 then DY = 0 end, % no diagonal moves
+    NewX = X + DX, NewY = Y + DY,
+    NewX >= 0, NewY >= 0,
+    f(X,Y,I), % no moving into a wall
+    NextS = [[NewX,NewY],End,I],
+    Action = [DX,DY],
+    Cost = 1. 
+
+% heuristic is 4x speedup
+heuristic([[X,Y],[EX,EY],_]) = Dist => 
+    Dist = abs(X-EX)+abs(Y-EY).
+
+% table here is 10x speedup
+table 
+f(X,Y,I) => even((X*X + 3*X + 2*X*Y + Y + Y*Y + I)
+            .to_binary_string.map(to_int).sum).
+
+
+print_maze(MX,MY,I) =>
+    printf("  %w\n",stringify(0..MX)),
+    foreach(Y in 0..MY) 
         printf("%w ",Y),
-        foreach(X in 0..9)
+        foreach(X in 0..MX)
             if f(X,Y,I) then Wall = "." else Wall = "#" end,
             printf("%w",Wall)
         end,
         printf("\n")
     end.
 
-f(X,Y,I) => even((X*X + 3*X + 2*X*Y + Y + Y*Y + I).to_binary_string.map(to_int).sum).
+stringify([]) = "".
+stringify([H|T]) = to_string(H)++stringify(T).
 
 %   0123456789
 % 0 .#.####.##
