@@ -9,16 +9,30 @@ main =>
     print_maze(9,9,I),
 
     Start = [1,1],
-    S = [Start] ++ [End] ++ [I],
+    S = [Start,End,I],
     time(best_plan(S, Plan, Cost)), % .017 sec
     printf("Answer Part 1: %w\n",Cost),
 
     % Part 2, reach within 50 steps
-    R = reachable(50,Start,I),
-    println((R,R.len)),
-    printf("Answer Part 2: %w\n","Not yet!").
 
-reachable(Steps,[X1,Y1],I) = R =>
+    Part2 = part2(Steps,Start,I),
+
+    printf("Answer Part 2: %w\n",Part2.sort_down_remove_dups).
+
+part2(Steps,Start,I) = R => 
+    Possible = possible(Steps,Start,I),
+    R = [],
+    foreach (R in possible(50,Start,I))
+        RCost = get_plan(Start,R,I),
+        R := R ++ RCost
+    end.
+
+table
+get_plan(Start,End,I) = Cost =>
+    Cost = findall(C, best_plan([Start,R,I],Plan2,C)).
+
+
+possible(Steps,[X1,Y1],I) = R =>
     Rplus = [[X1+X,Y1+Y] : X in 0..Steps, Y in 0..Steps, X+Y<=Steps],
     Rminus = [[X1-X,Y1-Y] : X in 0..Steps, Y in 0..Steps, X+Y<=Steps, (X1-X) >=0, (Y1-Y) >=0],
     R = [[X,Y] : [X,Y] in sort_remove_dups(Rplus ++ Rminus), f(X,Y,I)].
