@@ -15,21 +15,22 @@ main =>
 
     % Part 2, reach within 50 steps
 
-    Part2 = part2(Steps,Start,I),
-
-    printf("Answer Part 2: %w\n",Part2.sort_down_remove_dups).
+    Part2 = part2(50,Start,I),
+    printf("Answer Part 2: %w\n",Part2).
 
 part2(Steps,Start,I) = R => 
-    Possible = possible(Steps,Start,I),
-    R = [],
-    foreach (R in possible(50,Start,I))
-        RCost = get_plan(Start,R,I),
-        R := R ++ RCost
+    Poss = possible(Steps,Start,I),
+    R := [],
+    foreach (P in Poss)
+        % RCost = get_plan(Start,R,I),
+        RCost = findall(C,best_plan([Start,P,I],Plan,C)),
+        R := R ++ RCost,
+        println(R)
     end.
 
 table
 get_plan(Start,End,I) = Cost =>
-    Cost = findall(C, best_plan([Start,R,I],Plan2,C)).
+    Cost = findall(C,plan([Start,R,I],P,C)).
 
 
 possible(Steps,[X1,Y1],I) = R =>
