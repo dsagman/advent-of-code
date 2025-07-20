@@ -1,0 +1,46 @@
+% slow
+
+import util.
+
+main =>
+    Data = "00111101111101000",
+    % L = 272,
+    L = 35651584,
+    time(E = encode(Data,L)),
+    println("encoded"),
+    time(C = checksum(E)),
+    println(C).
+
+% part 1 = 10011010010010010
+% part 2 = 10101011110100011
+
+encode(D,L) = D =>
+    while (D.len < L)
+        D := encode1(D),
+    end,
+    D := D.take(L).
+
+encode1(A) = A ++ "0" ++ A.reverse.swap10.
+
+swap10(["00"|T]) = "11" ++ swap10(T).
+swap10(["01"|T]) = "10" ++ swap10(T).
+swap10(["10"|T]) = "01" ++ swap10(T).
+swap10(["11"|T]) = "11" ++ swap10(T).
+swap10(['0'|T]) = "1" ++ swap10(T).
+swap10(['1'|T]) = "0" ++ swap10(T).
+swap10([]) = [].
+
+checksum(L) = C =>
+    C = pair_reduce(L),
+    while(C.len.even)
+        C := pair_reduce(C)
+    end.
+    
+pair_reduce([]) = [].
+pair_reduce("0") = "0".
+pair_reduce("1") = "1".
+pair_reduce(['0','0'|T]) = "1" ++ pair_reduce(T).
+pair_reduce(['1','1'|T]) = "1" ++ pair_reduce(T).
+pair_reduce(['0','1'|T]) = "0" ++ pair_reduce(T).
+pair_reduce(['1','0'|T]) = "0" ++ pair_reduce(T).
+

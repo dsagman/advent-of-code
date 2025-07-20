@@ -58,7 +58,7 @@ main =>
 
 go(DPos,DTZ) = T =>
     %(Time + Dist + Time Zero Position) mod Disc Positions
-    T :: 0..maxint_small(),
+    T :: 0..maxint_small(), % 72057594037927935
     sum([(T+D+DTZ[D]) mod DPos[D] : D in 1..DPos.len]) #=0,
     solve(T).
 
@@ -67,3 +67,4 @@ go(DPos,DTZ) = T =>
     % foreach (D in 1..DPos.len)
     %     0 #= (T+D+DTZ[D]) mod DPos[D]
     % end,
+
