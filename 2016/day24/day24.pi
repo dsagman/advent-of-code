@@ -1,0 +1,41 @@
+import planner.
+import util.
+
+main =>
+    % read input into 
+    % Maze = read_file_lines("test"),
+    Maze = read_file_lines("day.txt").to_array,
+    % println(Maze),
+    [Valid, Req, MaxN] = parse(Maze),
+    println(valid=Valid),
+    println(req=Req),
+    println(maxN=MaxN).
+    % create valid for each [X,Y]
+    % store Req locations as a list
+    %   order from 0 to MaxN
+    % action cost = MaxN - #Req in Path
+    % action = Path
+
+parse(Maze) = [Valid, Req, MaxN] =>
+    MaxY = Maze.len,
+    MaxX = Maze[1].len,
+    Valid = new_array(MaxY,MaxX), bind_vars(Valid, []),
+    Req = [],
+    foreach (Y in 1..MaxY, X in 1..MaxX)
+        MYX = Maze[Y,X],
+        if (not member(MYX,['.','#']))
+            then Req := Req ++ [[MYX.to_int,[Y,X]]]
+        end,
+        foreach ([DY,DX] in [[-1,0],[1,0],[0,1],[0,-1]])
+            (
+            NX = X+DX, NY = Y+DY, 
+            between(1, MaxY, NY), between(1, MaxX, NX),
+            if (Maze[NY,NX] != '#' && MYX != '#')
+            then
+                Valid[Y,X] := Valid[Y,X] ++ [[NY,NX]]
+            end
+            ) ; true
+        end
+    end,
+    Req := Req.sort(1),
+    MaxN = max([N : [N,[_,_]] in Req]).
