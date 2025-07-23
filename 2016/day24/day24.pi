@@ -1,20 +1,54 @@
 import planner.
 import util.
 
+
+% speed improvements: 
+%   - don't sort visited
+%   - just count length of visited
+%   - don't need to include start in req
+%   - delete from req and rather than add to visited
+%   - part 1: 72 sec -> 36 sec
+%   - part 2: 180 sec
+%   - plan options didn't change speed at all
+
 main =>
-    % read input into 
-    % Maze = read_file_lines("test"),
-    Maze = read_file_lines("day.txt").to_array,
-    % println(Maze),
+    Maze = read_file_lines("test").to_array,
+    % Maze = read_file_lines("day.txt").to_array,
     [Valid, Req, MaxN] = parse(Maze),
-    println(valid=Valid),
-    println(req=Req),
-    println(maxN=MaxN).
-    % create valid for each [X,Y]
-    % store Req locations as a list
-    %   order from 0 to MaxN
-    % action cost = MaxN - #Req in Path
-    % action = Path
+    [_,Start] = Req[1],
+    IState = [Start,Valid,slice(Req,2),Start],
+    time(best_plan_unbounded(IState,Plan,Cost)), 
+    println(plan=Plan),
+    println(cost=Cost-1).  % For part 2, add 1 to cost
+
+
+final(S@[CurXY,_Valid,Req,Start]),  
+    % Req.len == 0  => true. % part 1
+    Req.len == 0, CurXY = Start => true. % part 2
+
+    % Visited.len == Req.len => true. % 15% faster, 52 sec
+    % Visited.sort(1) == Req => true. % slow
+
+
+action([[X,Y],Valid,Req,Start],NextS,Action,Cost) =>
+    member(MoveTo,Valid[X,Y]),
+    if member([N,[X,Y]],Req) 
+       then Req := delete(Req, [N,[X,Y]]), Action = N
+       else Action = ''
+    end,
+    NextS = ([MoveTo,Valid,Req,Start]),
+    Cost = 1.
+
+% this is too slow
+% action(S@[[SX,SY],Valid,Visited,Req,MaxN],NextS,Action,Cost) =>
+%     member(MoveTo,Valid[SX,SY]),
+%     if member([N,[SX,SY]],Req) && not member([N,[SX,SY]],Visited)
+%        then Visited := Visited ++ [[N,[SX,SY]]], Action = N
+%        else Action = ''
+%     end,
+%     NextS = ([MoveTo,Valid,Visited,Req,MaxN]),
+%     Cost = 1.
+
 
 parse(Maze) = [Valid, Req, MaxN] =>
     MaxY = Maze.len,
@@ -36,6 +70,4 @@ parse(Maze) = [Valid, Req, MaxN] =>
             end
             ) ; true
         end
-    end,
-    Req := Req.sort(1),
-    MaxN = max([N : [N,[_,_]] in Req]).
+    end.
