@@ -1,6 +1,4 @@
 import planner.
-import util.
-
 
 % speed improvements: 
 %   - don't sort visited
@@ -16,28 +14,42 @@ main =>
     % Maze = read_file_lines("day.txt").to_array,
     [Valid, Req, MaxN] = parse(Maze),
     [_,Start] = Req[1],
-    IState = [Start,Valid,slice(Req,2),Start],
-    time(best_plan_unbounded(IState,Plan,Cost)), 
-    println(plan=Plan),
-    println(cost=Cost-1).  % For part 2, add 1 to cost
-
+    time(best_plan([Start,Valid,slice(Req,2),Start],Plan,Cost)), 
+    println([plan=Plan,answer=Cost-1]).  % For part 2, add 1 to cost
 
 final(S@[CurXY,_Valid,Req,Start]),  
-    % Req.len == 0  => true. % part 1
-    Req.len == 0, CurXY = Start => true. % part 2
-
-    % Visited.len == Req.len => true. % 15% faster, 52 sec
-    % Visited.sort(1) == Req => true. % slow
-
+    Req.len == 0  => true. % part 1
+    % Req.len == 0, CurXY = Start => true. % part 2
 
 action([[X,Y],Valid,Req,Start],NextS,Action,Cost) =>
-    member(MoveTo,Valid[X,Y]),
     if member([N,[X,Y]],Req) 
-       then Req := delete(Req, [N,[X,Y]]), Action = N
-       else Action = ''
+    then Req := delete(Req, [N,[X,Y]]), Action = N
+    else Action = ''
     end,
+    member(MoveTo,Valid[X,Y]),
     NextS = ([MoveTo,Valid,Req,Start]),
     Cost = 1.
+
+parse(Maze) = [Valid,Req,MaxN] =>
+    MaxY = Maze.len, MaxX = Maze[1].len,
+    Valid = new_array(MaxY,MaxX), bind_vars(Valid,[]),
+    Req = [],
+    foreach (Y in 1..MaxY, X in 1..MaxX)
+        MYX = Maze[Y,X],
+        if (not member(MYX,['.','#']))
+            then Req := Req ++ [[MYX.to_int,[Y,X]]]
+        end,
+        foreach ([DY,DX] in [[-1,0],[1,0],[0,1],[0,-1]])
+            (
+            NX = X+DX, NY = Y+DY, 
+            between(1,MaxY,NY), between(1,MaxX,NX),
+            if (Maze[NY,NX] != '#' && MYX != '#')
+            then Valid[Y,X] := Valid[Y,X] ++ [[NY,NX]]
+            end
+            ) ; true
+        end
+    end.
+
 
 % this is too slow
 % action(S@[[SX,SY],Valid,Visited,Req,MaxN],NextS,Action,Cost) =>
@@ -48,26 +60,3 @@ action([[X,Y],Valid,Req,Start],NextS,Action,Cost) =>
 %     end,
 %     NextS = ([MoveTo,Valid,Visited,Req,MaxN]),
 %     Cost = 1.
-
-
-parse(Maze) = [Valid, Req, MaxN] =>
-    MaxY = Maze.len,
-    MaxX = Maze[1].len,
-    Valid = new_array(MaxY,MaxX), bind_vars(Valid, []),
-    Req = [],
-    foreach (Y in 1..MaxY, X in 1..MaxX)
-        MYX = Maze[Y,X],
-        if (not member(MYX,['.','#']))
-            then Req := Req ++ [[MYX.to_int,[Y,X]]]
-        end,
-        foreach ([DY,DX] in [[-1,0],[1,0],[0,1],[0,-1]])
-            (
-            NX = X+DX, NY = Y+DY, 
-            between(1, MaxY, NY), between(1, MaxX, NX),
-            if (Maze[NY,NX] != '#' && MYX != '#')
-            then
-                Valid[Y,X] := Valid[Y,X] ++ [[NY,NX]]
-            end
-            ) ; true
-        end
-    end.
