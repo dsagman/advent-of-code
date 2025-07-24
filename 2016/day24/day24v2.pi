@@ -39,10 +39,10 @@ main =>
     [Valid,Req] = prune(Maze),
     print_maze(Maze,"pruned"),
     % get each combo of shortest paths
-    foreach (I in [1], J in I+1..Req.len)
+    % foreach (I in [1], J in I+1..Req.len) % doesn't get stuck
     % foreach (I in 2..Req.len-1, J in I+1..Req.len) % does not get stuck
-    % foreach (I in 1..Req.len-1, J in I+1..Req.len) % gets stuck
-    % foreach (I in 1..Req.len-1, J in Req.len..(-1)..I+1) % gets stuck in different plce
+    foreach (I in 1..Req.len-1, J in I+1..Req.len) % gets stuck
+    % foreach (I in 1..Req.len-1, J in Req.len..(-1)..I+1) % gets stuck in different place
         time(best_plan([Req[I],Valid,Req[J]],_,C)),
         garbage_collect(), % doesn't help
         println([i=I,j=J,c=C])
