@@ -1,55 +1,82 @@
 import planner.
 
 % speed improvements: 
-%   - don't sort visited
-%   - just count length of visited
-%   - don't need to include start in req
-%   - delete from req and rather than add to visited
+%   - don't sort visited and just count length of visited (20% speedup)
+%   - don't need to include start in req (de minimus)
+%   - delete from req and rather than add to visited (20% speedup)
+%   - prune dead ends (20% speedup)
 %   - part 1: 72 sec -> 36 sec
+%  framework 10 sec part 1, compute 9 sec
 %   - part 2: 180 sec
 %   - plan options didn't change speed at all
 
 main =>
-    Maze = read_file_lines("test").to_array,
-    % Maze = read_file_lines("day.txt").to_array,
-    [Valid, Req, MaxN] = parse(Maze),
+    % Maze = read_file_lines("test2").to_array,
+    Maze = read_file_lines("day.txt").to_array,
+    [Valid,Req] = prune(Maze),
+    print_maze(Maze),
     [_,Start] = Req[1],
     time(best_plan([Start,Valid,slice(Req,2),Start],Plan,Cost)), 
     println([plan=Plan,answer=Cost-1]).  % For part 2, add 1 to cost
 
-final(S@[CurXY,_Valid,Req,Start]),  
-    Req.len == 0  => true. % part 1
-    % Req.len == 0, CurXY = Start => true. % part 2
+get_size(Valid) = S =>
+    S = 0,
+    foreach(Y in 1..Valid.len, X in 1..Valid[1].len)
+        S := S + len(Valid[Y,X])
+    end.
 
-action([[X,Y],Valid,Req,Start],NextS,Action,Cost) =>
-    if member([N,[X,Y]],Req) 
-    then Req := delete(Req, [N,[X,Y]]), Action = N
-    else Action = ''
+final(S@[CurYX,_Valid,Req,Start]),  
+    % Req.len == 0  => true. % part 1
+    Req.len == 0, CurYX = Start => true. % part 2
+
+action([[Y,X],Valid,Req,Start],NextS,Action,Cost) =>
+    if member([N,[Y,X]],Req) 
+        then Req := delete(Req, [N,[Y,X]]), Action = N
+        else Action = ''
     end,
-    member(MoveTo,Valid[X,Y]),
+    member(MoveTo,Valid[Y,X]),
     NextS = ([MoveTo,Valid,Req,Start]),
     Cost = 1.
 
-parse(Maze) = [Valid,Req,MaxN] =>
-    MaxY = Maze.len, MaxX = Maze[1].len,
-    Valid = new_array(MaxY,MaxX), bind_vars(Valid,[]),
-    Req = [],
-    foreach (Y in 1..MaxY, X in 1..MaxX)
-        MYX = Maze[Y,X],
-        if (not member(MYX,['.','#']))
-            then Req := Req ++ [[MYX.to_int,[Y,X]]]
+% prune dead ends
+prune(Maze) = [Valid,Req] => 
+    Req = parse_req(Maze),
+    Valid = parse(Maze),
+    println(vsize_no_prune=get_size(Valid)),
+    ReqLocs = [[Y,X] : [_,[Y,X]] in Req],
+    Flag := true,
+    while (Flag)
+        Flag := false,
+        foreach(Y in 1..Valid.len, X in 1..Valid[1].len, 
+                not member([Y,X],ReqLocs),
+                len(Valid[Y,X]) == 1)
+            Maze[Y,X] := '$', 
+            Flag := true,
         end,
-        foreach ([DY,DX] in [[-1,0],[1,0],[0,1],[0,-1]])
-            (
-            NX = X+DX, NY = Y+DY, 
-            between(1,MaxY,NY), between(1,MaxX,NX),
-            if (Maze[NY,NX] != '#' && MYX != '#')
-            then Valid[Y,X] := Valid[Y,X] ++ [[NY,NX]]
-            end
-            ) ; true
-        end
+        Valid := parse(Maze),
+        println(vsize_prune=get_size(Valid)),
     end.
 
+
+parse(Maze) = Valid =>
+    MaxY = Maze.len, MaxX = Maze[1].len,
+    Valid = new_array(MaxY,MaxX), bind_vars(Valid,[]),
+    foreach (Y in 1..MaxY, X in 1..MaxX, 
+            MYX = Maze[Y,X],
+            [DY,DX] in [[-1,0],[1,0],[0,1],[0,-1]],
+            NX = X+DX, NY = Y+DY, 
+            between(1,MaxY,NY), between(1,MaxX,NX),
+            not member(Maze[NY,NX],['#','$']), 
+            not member(MYX,['#','$']))
+        Valid[Y,X] := Valid[Y,X] ++ [[NY,NX]]
+    end.
+
+parse_req(Maze) = [[Maze[Y,X].to_int,[Y,X]] : Y in 1..Maze.len, X in 1..Maze[1].len, not member(Maze[Y,X],['.','#','$'])].
+
+print_maze(Maze) =>
+    foreach (Row in Maze)
+        println(Row)
+    end.
 
 % this is too slow
 % action(S@[[SX,SY],Valid,Visited,Req,MaxN],NextS,Action,Cost) =>
