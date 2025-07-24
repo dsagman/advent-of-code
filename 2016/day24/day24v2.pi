@@ -33,19 +33,27 @@
 
 import planner.
 
+    % foreach (I in 1..Req.len-1, J in I+1..Req.len) % gets stuck
+    % foreach (I in 1..Req.len-1, J in Req.len..(-1)..I+1) % gets stuck in different place
+
 main =>
     % Maze = read_file_lines("test").to_array,
     Maze = read_file_lines("day").to_array,
     [Valid,Req] = prune(Maze),
-    print_maze(Maze,"pruned"),
+    Graph = new_array(Req.len,Req.len),
+    % print_maze(Maze,"pruned"),
     % get each combo of shortest paths
-    % foreach (I in [1], J in I+1..Req.len) % doesn't get stuck
-    % foreach (I in 2..Req.len-1, J in I+1..Req.len) % does not get stuck
-    foreach (I in 1..Req.len-1, J in I+1..Req.len) % gets stuck
-    % foreach (I in 1..Req.len-1, J in Req.len..(-1)..I+1) % gets stuck in different place
-        time(best_plan([Req[I],Valid,Req[J]],_,C)),
-        garbage_collect(), % doesn't help
+
+
+    foreach (I in 1..Req.len-1, J in I+1..Req.len) 
+        best_plan_bin([Req[I],Valid,Req[J]],_,C),
+        Graph[I,J] := C,
+        Graph[J,I] := C,
         println([i=I,j=J,c=C])
+    end,
+
+    foreach (R in Graph)
+        println(R)
     end.
 
 
@@ -53,6 +61,7 @@ main =>
 
 final(S@[CurYX,_Valid,End]), CurYX=End => true.
 
+table
 action([[Y,X],Valid,End],NextS,Action,Cost) =>
     member(MoveTo,Valid[Y,X]),
     NextS = ([MoveTo,Valid,End]),
@@ -64,7 +73,6 @@ prune(Maze) = [Valid,Req] =>
     Req = parse_req(Maze),
     Valid = parse(Maze),
     println(vsize_no_prune=get_size(Valid)),
-    % ReqLocs = [[Y,X] : [_,[Y,X]] in Req],
     Flag := true,
     while (Flag)
         Flag := false,
