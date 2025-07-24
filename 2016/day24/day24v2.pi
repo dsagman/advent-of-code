@@ -35,26 +35,24 @@ import planner.
 
 main =>
     % Maze = read_file_lines("test").to_array,
-    Maze = read_file_lines("day.txt").to_array,
+    Maze = read_file_lines("day").to_array,
     [Valid,Req] = prune(Maze),
-    % print_maze(Maze),
-    time(best_plan([Req[1],Valid,slice(Req,2),Req[1]],Plan,Cost)), 
-    println([plan=Plan,answer=Cost-1]).  % For part 2, add 1 to cost
+    print_maze(Maze,"pruned"),
+    % get each combo of shortest paths
+    foreach (I in 2..Req.len-1, J in I+1..Req.len)
+        time(best_plan([Req[I],Valid,Req[J]],_,C)),
+        garbage_collect(),
+        println([i=I,j=J,c=C])
+    end.
+
 
 % Planner final and action states
 
-final(S@[CurYX,_Valid,Req,Start]),  
-    Req.len == 0  => true. % part 1 
-    % Req.len == 0, CurYX = Start => true. % part 2
+final(S@[CurYX,_Valid,End]), CurYX==End => true.
 
-action([[Y,X],Valid,Req,Start],NextS,Action,Cost) =>
-
-    if member([Y,X], Req)    
-        then Req := delete(Req, [Y,X]), Action = '*'  
-        else Action = ''
-    end,
+action([[Y,X],Valid,End],NextS,Action,Cost) =>
     member(MoveTo,Valid[Y,X]),
-    NextS = ([MoveTo,Valid,Req,Start]),
+    NextS = ([MoveTo,Valid,End]),
     Cost = 1.
 
 % Parse maze and prune dead ends
@@ -102,18 +100,11 @@ get_size(Valid) = S =>
         S := S + len(Valid[Y,X])
     end.
 
-print_maze(Maze) =>
+print_maze(Maze,File) =>
+    FD = open(File,write),
     foreach (Row in Maze)
-        println(Row)
-    end.
+        println(FD,Row)
+    end,
+    close(FD).
 
 
-% this is slow
-% action(S@[[SX,SY],Valid,Visited,Req,MaxN],NextS,Action,Cost) =>
-%     member(MoveTo,Valid[SX,SY]),
-%     if member([N,[SX,SY]],Req) && not member([N,[SX,SY]],Visited)
-%        then Visited := Visited ++ [[N,[SX,SY]]], Action = N
-%        else Action = ''
-%     end,
-%     NextS = ([MoveTo,Valid,Visited,Req,MaxN]),
-%     Cost = 1.
