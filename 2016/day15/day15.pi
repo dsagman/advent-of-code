@@ -45,8 +45,8 @@ import cp.
 % times
 %        Part1   Part2
 % cp     0.04    0.25
-% sat    DNF     DNF
-% mip    0.4     2.4
+% sat    1.88    7.32
+% mip    0.40    2.40
 %
 
 main =>
@@ -58,12 +58,13 @@ main =>
 
 go(DPos,DTZ) = T =>
     %(Time + Dist + Time Zero Position) mod Disc Positions
-    T :: 0..maxint_small(), % 72057594037927935
+    T :: 0..maxint_small(), % 72_057_594_037_927_935
+    T :: 0..10_000_000, % for SAT
     sum([(T+D+DTZ[D]) mod DPos[D] : D in 1..DPos.len]) #=0,
-    solve(T).
+    solve([$min(T)],T).
 
 
-
+   % alternative code to using sum
     % foreach (D in 1..DPos.len)
     %     0 #= (T+D+DTZ[D]) mod DPos[D]
     % end,
