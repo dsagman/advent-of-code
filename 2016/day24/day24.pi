@@ -27,93 +27,157 @@
 %   - don't need to include start in req (de minimus)
 %   - delete from req and rather than add to visited (20% speedup)
 %   - prune dead ends in maze (25% speedup)
-%   - part 1: 72 sec -> 36 sec -> 19 sec
+%   - part 1: 72 sec -> 36 sec -> 19 sec 
 %   - part 2: 180 sec -> 125 sec
-%   - plan options didn't change speed at all
+%   - use planner to find shortest paths between reqs and then
+%   - use cp to get the shortest overall path that meets the constraints
+%   - part 1 and 2 combined: 5 seconds
 
 import planner.
+import cp.
 
 main =>
-    % Maze = read_file_lines("test").to_array,
-    Maze = read_file_lines("day.txt").to_array,
-    [Valid,Req] = prune(Maze),
-    % print_maze(Maze),
-    time(best_plan([Req[1],Valid,slice(Req,2),Req[1]],Plan,Cost)), 
-    println([plan=Plan,answer=Cost-1]).  % For part 2, add 1 to cost
+    % cl_facts([$show(true)]), % globally control progress printing, see my_println
+    cl_facts([$show(false)]), 
+
+    % Maze = read_file_lines("test24_2016.data").to_array,
+    Maze = read_file_lines("day24_2016.data").to_array,
+    save_maze(Maze,"day24_2016_pruned.data"),
+
+    % Neibs are the neibors of each [Y,X] Maze location
+    % Reqs are the required [Y,X] coordinates to visit
+    [Neibs,Reqs] = prune(Maze),
+    N = Reqs.len,
+
+    % Dists is a table of distances between each pair of reqs
+    Dists = new_array(N,N), bind_vars(Dist,999),
+    foreach (I in 1..N-1, J in I+1..N) 
+        best_plan_bin([Reqs[I],Neibs,Reqs[J]],_,C),
+        Dists[I,J] := C,
+        Dists[J,I] := C,
+        my_println([i=I,j=J,c=C]) % see progress
+    end,
+
+    foreach (Row in Dists) my_println(Row) end, % show Dists
+    
+    % find the best Path from Reqs[1] that includes all other Reqs
+    Path = new_list(N),
+    Path :: 1..N,
+    all_different(Path),
+    Path[1] #= 1, % start at Req[1]
+    Part1 #= sum([D : I in 1..N-1, matrix_element(Dists,Path[I+1],Path[I],D)]),
+    solve([$min(Part1)],Path),
+    my_println(Path), % show Path
+    printf("Answer Part 1: %w\n",Part1),
+
+    % find the best Path from Reqs[1], visit all Reqs, return to Reqs[1]
+    Path2 = new_list(N+1),
+    Path2 :: 1..N,
+    Path2[1] #= 1, Path2[N+1] #= 1,
+    all_different(slice(Path2,1,N)), % neat use of slice
+    Part2 #= sum([D : I in 1..N, matrix_element(Dists,Path2[I+1],Path2[I],D)]),
+    solve([$min(Part2)],Path2),
+    my_println(Path2),% show Path
+    printf("Answer Part 2: %w\n",Part2).
 
 % Planner final and action states
 
-final(S@[CurYX,_Valid,Req,Start]),  
-    Req.len == 0  => true. % part 1 
-    % Req.len == 0, CurYX = Start => true. % part 2
+final(S@[CurYX,_Neibs,End]), CurYX=End => true.
 
-action([[Y,X],Valid,Req,Start],NextS,Action,Cost) =>
-
-    if member([Y,X], Req)    
-        then Req := delete(Req, [Y,X]), Action = '*'  
-        else Action = ''
-    end,
-    member(MoveTo,Valid[Y,X]),
-    NextS = ([MoveTo,Valid,Req,Start]),
+% multiple calls to planner cause Picat to freeze
+% adding table seems to eliminate
+table
+action([[Y,X],Neibs,End],NextS,_,Cost) =>
+    member(MoveTo,Neibs[Y,X]),
+    NextS = ([MoveTo,Neibs,End]),
     Cost = 1.
 
 % Parse maze and prune dead ends
 
-prune(Maze) = [Valid,Req] => 
-    Req = parse_req(Maze),
-    Valid = parse(Maze),
-    println(vsize_no_prune=get_size(Valid)),
-    % ReqLocs = [[Y,X] : [_,[Y,X]] in Req],
-    Flag := true,
+prune(Maze) = [Neibs,Reqs] => 
+    Reqs = parse_reqs(Maze),
+    Neibs = parse(Maze),
+    my_println(vsize_no_prune=get_size(Neibs)), % see progress
+    Flag := true, % flag to keep doing this until no more prunes
     while (Flag)
         Flag := false,
-        foreach(Y in 1..Valid.len, X in 1..Valid[1].len, 
-                not member([Y,X],Req),
-                len(Valid[Y,X]) == 1)
-            Maze[Y,X] := '$', 
+        % if a [Y,X] has only one neighbor, and it isn't in Reqs 
+        % the neighbor can be pruned
+        foreach(Y in 1..Neibs.len, X in 1..Neibs[1].len, 
+                not member([Y,X],Reqs),
+                len(Neibs[Y,X]) == 1)
+            Maze[Y,X] := '$', % mark pruned with $
             Flag := true,
         end,
-        Valid := parse(Maze),
-        println(vsize_prune=get_size(Valid)),
+        Neibs := parse(Maze),
+        my_println(vsize_prune=get_size(Neibs)), % see progress
     end.
 
-parse(Maze) = Valid =>
+parse(Maze) = Neibs =>
     MaxY = Maze.len, MaxX = Maze[1].len,
-    Valid = new_array(MaxY,MaxX), bind_vars(Valid,[]),
+    Neibs = new_array(MaxY,MaxX), bind_vars(Neibs,[]),
     foreach (Y in 1..MaxY, X in 1..MaxX, 
             MYX = Maze[Y,X],
             [DY,DX] in [[-1,0],[1,0],[0,1],[0,-1]],
             NX = X+DX, NY = Y+DY, 
             between(1,MaxY,NY), between(1,MaxX,NX),
-            not member(Maze[NY,NX],['#','$']), 
+            not member(Maze[NY,NX],['#','$']), % $ is a pruned location
             not member(MYX,['#','$']))
-        Valid[Y,X] := Valid[Y,X] ++ [[NY,NX]]
+        Neibs[Y,X] := Neibs[Y,X] ++ [[NY,NX]]
     end.
 
-parse_req(Maze) = Req => 
+parse_reqs(Maze) = Reqs => 
     NumLocs = [[Maze[Y,X].to_int,[Y,X]] : Y in 1..Maze.len, X in 1..Maze[1].len, not member(Maze[Y,X],['.','#','$'])],
-    Req = [[Y,X] : [_,[Y,X]] in NumLocs.sort(1)].
+    Reqs = [[Y,X] : [_,[Y,X]] in NumLocs.sort(1)].
 
 % Utility functions
 
-get_size(Valid) = S =>
+get_size(Neibs) = S =>
     S = 0,
-    foreach(Y in 1..Valid.len, X in 1..Valid[1].len)
-        S := S + len(Valid[Y,X])
+    foreach(Y in 1..Neibs.len, X in 1..Neibs[1].len)
+        S := S + len(Neibs[Y,X])
     end.
 
-print_maze(Maze) =>
-    foreach (Row in Maze)
-        println(Row)
+my_println(X) =>
+    show(Show), % global fact for printing progress info
+    if Show then println(X) end.
+
+save_maze(Maze,File) =>
+    show(Show),
+    if Show then
+        FD = open(File,write),
+        foreach (Row in Maze)
+            println(FD,Row)
+        end,
+        close(FD)
     end.
 
 
-% this is slow
-% action(S@[[SX,SY],Valid,Visited,Req,MaxN],NextS,Action,Cost) =>
-%     member(MoveTo,Valid[SX,SY]),
-%     if member([N,[SX,SY]],Req) && not member([N,[SX,SY]],Visited)
-%        then Visited := Visited ++ [[N,[SX,SY]]], Action = N
-%        else Action = ''
-%     end,
-%     NextS = ([MoveTo,Valid,Visited,Req,MaxN]),
-%     Cost = 1.
+% This was much much slower than using Planner
+% sp for one pair took almost a minute
+
+% Edges = [],
+% foreach (Y in 1..Neibs.len, X in 1..Neibs[1].len)
+%     Neib = Neibs[Y,X],
+%     foreach (N in Neib)
+%         Edges := Edges ++ [[[Y,X],N]]
+%     end
+% end,
+% time(sp(Start,End,Edges,Path,W)),
+% println(W).
+
+% shortest path adapted from Picat manual
+% weight, W, of edges is always 1
+
+% table(+,+,+,-,min)
+% sp(Start,End,Edges,Path,W) ?=>
+%     W = 1,
+%     Path = [(Start,End)],
+%     member([Start,End],Edges).
+
+% sp(Start,End,Edges,Path,W) =>
+%     Path = [(Start,Middle)|Path1],
+%     member([Start,Middle],Edges),
+%     sp(Middle,End,Edges,Path1,W1),
+%     W = W1 + 1.
+
