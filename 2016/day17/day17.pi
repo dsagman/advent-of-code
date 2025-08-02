@@ -1,0 +1,14 @@
+import sys.
+% import os.
+import util.
+
+main =>
+    Pass = "hijkl",
+    OK = "bcdef",
+    MD5 = md5(Pass).take(4),
+    println(MD5).
+
+md5(String) = MD5 =>
+    Ret = command("echo -n \"hijkl\" | md5sum | awk '{print $1}' > temp_md5"),
+    % println(ret=Ret),
+    MD5 = read_file_chars("temp_md5").
