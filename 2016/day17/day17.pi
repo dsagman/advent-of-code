@@ -83,8 +83,7 @@ path(Code,S@[Row,Col],Goal@[GRow,GCol],Cost),
     printf("%w\r",Code.len-8). % get some output to see progress
 
 path(Code,S@[Row,Col],Goal@[GRow,GCol],Cost) =>
-    Opts = get_opts(Code),
-    Deltas = get_deltas(Opts),
+    Deltas = get_deltas(Code),
     member([DCode,DRow,DCol],Deltas),
     NRow = Row + DRow, between(1, 4, NRow),
     NCol = Col + DCol, between(1, 4, NCol),
@@ -92,12 +91,9 @@ path(Code,S@[Row,Col],Goal@[GRow,GCol],Cost) =>
     Cost = 1+Cost1.
 
 table
-get_opts(Code) = Opts =>
+get_deltas(Code) = Deltas =>
     MD5 = md5(Code).take(4),
-    Opts = [X : I in 1..4, X = cond(membchk(MD5[I],"bcdef"),1,0)].
-
-table
-get_deltas(Opts) = Deltas =>
+    Opts = [X : I in 1..4, X = cond(membchk(MD5[I],"bcdef"),1,0)],
     Deltas = [],
     if Opts[1] == 1 then Deltas := Deltas ++ [["U",-1, 0]] end,
     if Opts[2] == 1 then Deltas := Deltas ++ [["D", 1, 0]] end,
@@ -110,8 +106,7 @@ final(S@[Code,Row,Col]) =>
 
 table
 action(S@[Code,Row,Col],NextS,Action,Cost) =>
-    Opts = get_opts(Code),
-    Deltas = get_deltas(Opts),
+    Deltas = get_deltas(Code),
     member([DCode,DRow,DCol],Deltas),
     NRow = Row + DRow, between(1, 4, NRow),
     NCol = Col + DCol, between(1, 4, NCol),
@@ -119,6 +114,9 @@ action(S@[Code,Row,Col],NextS,Action,Cost) =>
     Action = DCode,
     Cost = 1.
 
+% this is one way to get MD5, call the linux utility md5sum
+% and write the output to a file and then read it
+% soooooooooooo slow though
 % table
 % system_md5(String) = MD5 =>
     % Ret = command("echo -n "++String++ " | md5sum | awk '{print $1}' > temp_md5"),
