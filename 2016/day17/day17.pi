@@ -54,6 +54,7 @@ What is the length of the longest path that reaches the vault?
 import sys.
 import util.
 import planner.
+import md5. % homemade MD5 with ChatGPT
 
 main =>
     % Code = "hijkl",    % test case, fails
@@ -67,8 +68,9 @@ main =>
     printf("Answer Part 1: %w\n",stringify(Plan)),
 
     % part 2: 5 minutes
-    % no native MD5 very slow
+    % using system to get MD5 very slow
     % writing MD5s to file and reading, very slow
+    % with chatGPT MD5 in picat: 12 seconds
     path(Code,[1,1],[4,4],CostSP),
     printf("Answer Part 2: %w\n",CostSP-1).
 
@@ -77,7 +79,9 @@ main =>
 table(+,+,+,max)
 path(Code,S@[Row,Col],Goal@[GRow,GCol],Cost), 
     GRow = Row, GCol = Col   => 
-    Cost = 1, printf("%w,",Code.len-8).
+    Cost = 1, 
+    printf("%w\r",Code.len-8). % get some output to see progress
+
 path(Code,S@[Row,Col],Goal@[GRow,GCol],Cost) =>
     Opts = get_opts(Code),
     Deltas = get_deltas(Opts),
@@ -115,10 +119,11 @@ action(S@[Code,Row,Col],NextS,Action,Cost) =>
     Action = DCode,
     Cost = 1.
 
-table
-md5(String) = MD5 =>
-    Ret = command("echo -n "++String++ " | md5sum | awk '{print $1}' > temp_md5"),
-    MD5 = read_file_chars("temp_md5").
+% table
+% system_md5(String) = MD5 =>
+    % Ret = command("echo -n "++String++ " | md5sum | awk '{print $1}' > temp_md5"),
+    % MD5 = read_file_chars("temp_md5").
+
 
 stringify([]) = "".
 stringify([H|T]) = to_string(H)++stringify(T).
