@@ -36,6 +36,19 @@ Passcodes actually used by Easter Bunny Vault Security do allow access to the va
 Given your vault's passcode, what is the shortest path (the actual path, not just the length) to reach the vault?
 
 Your puzzle input is awrkjxxr.
+
+--- Part Two ---
+
+You're curious how robust this security solution really is, and so you decide to find longer and longer paths which still provide access to the vault. You remember that paths always end the first time they reach the bottom-right room (that is, they can never pass through it, only end in it).
+
+For example:
+
+    If your passcode were ihgpwlah, the longest path would take 370 steps.
+    With kglvqrro, the longest path would be 492 steps long.
+    With ulqzkmiv, the longest path would be 830 steps long.
+
+What is the length of the longest path that reaches the vault?
+
 */
 
 import sys.
@@ -49,32 +62,51 @@ main =>
     % Code = "kglvqrro", % test case
     % Code = "ulqzkmiv", % test case 
     Code ="awrkjxxr",  % RDURRDDLRD
-    % time(best_plan([Code,1,1],Plan,Cost)),
-    % println(plan=stringify(Plan)),
-    % println(cost=Cost),
-    Sols = findall(Cost,best_plan([Code,1,1],Plan,Cost)),
-    println(max(Sols)).
 
-% part 2 1160 is too high.
+    time(best_plan([Code,1,1],Plan,Cost)),
+    printf("Answer Part 1: %w\n",stringify(Plan)),
+
+    % part 2
+    path(Code,[1,1],[4,4],CostSP),
+    printf("Answer Part 2: %w\n",CostSP-1),
+
+
+
+table(+,+,+,max)
+path(Code,S@[Row,Col],Goal@[GRow,GCol],Cost), 
+    GRow = Row, GCol = Col   => 
+    Cost = 1, printf("%w,",Code.len-8).
+path(Code,S@[Row,Col],Goal@[GRow,GCol],Cost) =>
+    Opts = get_opts(Code),
+    Deltas = get_deltas(Opts),
+    member([DCode,DRow,DCol],Deltas),
+    NRow = Row + DRow, between(1, 4, NRow),
+    NCol = Col + DCol, between(1, 4, NCol),
+    path(Code++DCode,[NRow,NCol],Goal,Cost1),
+    Cost = 1+Cost1.
+
+table
+get_opts(Code) = Opts =>
+    MD5 = md5(Code).take(4),
+    Opts = [X : I in 1..4, X = cond(membchk(MD5[I],"bcdef"),1,0)].
+
+table
+get_deltas(Opts) = Deltas =>
+    Deltas = [],
+    if Opts[1] == 1 then Deltas := Deltas ++ [["U",-1, 0]] end,
+    if Opts[2] == 1 then Deltas := Deltas ++ [["D", 1, 0]] end,
+    if Opts[3] == 1 then Deltas := Deltas ++ [["L", 0,-1]] end,
+    if Opts[4] == 1 then Deltas := Deltas ++ [["R", 0, 1]] end.
+
 
 table
 final(S@[Code,Row,Col]) => 
-    Row == 4, Col == 4, 
-    current_plan() = Plan, 
-    % Plan.len > 900,
-    println(Plan.len),
-    fail.
+    Row == 4, Col == 4, true.
 
 table
 action(S@[Code,Row,Col],NextS,Action,Cost) =>
-    % println(s=S),
-    Deltas = [],
-    MD5 = md5(Code).take(4),
-    % println(md5=MD5),
-    if membchk(MD5[1], "bcdef") then Deltas := Deltas ++ [["U",-1, 0]] end,
-    if membchk(MD5[2], "bcdef") then Deltas := Deltas ++ [["D", 1, 0]] end,
-    if membchk(MD5[3], "bcdef") then Deltas := Deltas ++ [["L", 0,-1]] end,
-    if membchk(MD5[4], "bcdef") then Deltas := Deltas ++ [["R", 0, 1]] end,
+    Opts = get_opts(Code),
+    Deltas = get_deltas(Opts),
     member([DCode,DRow,DCol],Deltas),
     NRow = Row + DRow, between(1, 4, NRow),
     NCol = Col + DCol, between(1, 4, NCol),
