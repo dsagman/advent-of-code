@@ -52,7 +52,6 @@ What is the length of the longest path that reaches the vault?
 */
 
 import sys.
-% import os.
 import util.
 import planner.
 
@@ -63,12 +62,15 @@ main =>
     % Code = "ulqzkmiv", % test case 
     Code ="awrkjxxr",  % RDURRDDLRD
 
-    time(best_plan([Code,1,1],Plan,Cost)),
+    % part 1: .005 sec
+    time(best_plan([Code,1,1],Plan,Cost)), 
     printf("Answer Part 1: %w\n",stringify(Plan)),
 
-    % part 2
+    % part 2: 5 minutes
+    % no native MD5 very slow
+    % writing MD5s to file and reading, very slow
     path(Code,[1,1],[4,4],CostSP),
-    printf("Answer Part 2: %w\n",CostSP-1),
+    printf("Answer Part 2: %w\n",CostSP-1).
 
 
 
@@ -98,7 +100,6 @@ get_deltas(Opts) = Deltas =>
     if Opts[3] == 1 then Deltas := Deltas ++ [["L", 0,-1]] end,
     if Opts[4] == 1 then Deltas := Deltas ++ [["R", 0, 1]] end.
 
-
 table
 final(S@[Code,Row,Col]) => 
     Row == 4, Col == 4, true.
@@ -117,7 +118,6 @@ action(S@[Code,Row,Col],NextS,Action,Cost) =>
 table
 md5(String) = MD5 =>
     Ret = command("echo -n "++String++ " | md5sum | awk '{print $1}' > temp_md5"),
-    % println(ret=Ret),
     MD5 = read_file_chars("temp_md5").
 
 stringify([]) = "".
