@@ -1,2 +1,20 @@
-import cp.
+import md5.
 
+main =>
+    Salt = "abc",
+
+    println(md5(Salt)),
+    println(first_triple("aaa")),
+    println(first_triple("aaabb")),
+    println(first_triple("bbaaa")),
+    println(first_triple("bb")),
+    C = has8('A',"AAAAAAAAAAAAAAAABBBBBBB").cond(true,false),
+    println(c=C).
+
+% first_triple(_) = 5.
+
+first_triple([]) = ''. 
+first_triple([A,A,A|_]) = A.
+first_triple([A|Xs]) = first_triple(Xs).
+
+has8(X,Ys) => membchk(new_list(8,X), Ys).
