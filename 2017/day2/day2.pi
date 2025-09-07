@@ -1,0 +1,17 @@
+import sat.
+import util.
+
+main =>
+    Data =read_file_lines("day.txt").map(split).map(parse),
+
+    Part1 = sum([max(D)-min(D) : D in Data]),
+    printf("Part 1 Answer: %w\n",Part1),
+
+    part2(Data,Part2), solve(Part2),
+    printf("Part 2 Answer: %w\n",Part2).
+
+parse(XS) = [X.to_int : X in XS].
+
+part2(Data,Part2) =>
+    Part2 #= sum([P1//P2 : D in Data, member(P1, D), member(P2, D),
+                       P1 #!= P2, P1 mod P2 #= 0])
