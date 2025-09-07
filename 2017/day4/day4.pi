@@ -1,0 +1,8 @@
+import util.
+
+main =>
+    Data = read_file_lines("day.txt").map(split),
+    printf("Answer Part 1: %w\n",go(Data)),
+    printf("Answer Part 2: %w\n",go([D.map(sort) : D in Data])).
+
+go(Data) = len([D : D in Data, D.sort_remove_dups == D.sort]).
