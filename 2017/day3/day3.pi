@@ -30,26 +30,31 @@
 
 %    R     U      L     D
 % [[1,0],[0,1],[-1,0],[0,-1]]
+import math.
 
-main => 
-    MaxX = 0, MinX = 0, MaxY = 0, MinY = 0,
+main =>    
+    [Part1,Part2] = go(368078),
+    printf("Answer Part 1: %w\n",Part1),
+    printf("Answer Part 2: %w\n",Part2).
+
+go(N) = [P1,P2] =>
     Loc = [0,0],
-    Deltas = [[1,0],[0,1],[-1,0],[0,-1]],
-    DeltaIdx = 1,
-    N = 368078,
+    Deltas = [[1,0],[0,1],[-1,0],[0,-1]], DeltaIdx = 1,
+    LocVals = new_map([[0,0]=1]), SpiralSum = 1,
     foreach(I in 1..N-1)
         Loc := addXY(Loc,Deltas[DeltaIdx]),
-       (
-        (((Loc[1] > MaxX, MaxX := Loc[1]); % turn U
-          (Loc[1] < MinX, MinX := Loc[1]); % turn D
-          (Loc[2] > MaxY, MaxY := Loc[2]); % turn L
-          (Loc[2] < MinY, MinY := Loc[2])), % turn R
-            DeltaIdx := incD(DeltaIdx)); 
-        true ) 
-
+        DeltaIdx := ((floor(sqrt(4*I+1))+3) mod 4)+1, %https://oeis.org/A063826
+        if SpiralSum <= N 
+        then SpiralSum := sum([get(LocVals, Key, 0) : Key in neighbors(Loc)]),
+             put(LocVals, Loc, SpiralSum),
+        end,
     end,
-    println([n=N,loc=Loc,d=(Loc.map(abs).sum)]).
+    % println(LocVals.values.sort),
+    P1 = Loc.map(abs).sum,
+    P2 = SpiralSum.
 
-incD(X) = max(1,((X+1) mod 5)).
+
 addXY([X,Y],[DX,DY]) = [X+DX,Y+DY].
+
+neighbors(Loc) = [addXY(Loc,Nbors) : Nbors in [[0,1],[1,1],[1,0],[0,-1],[-1,-1],[-1,0],[-1,1],[1,-1]]]
 
