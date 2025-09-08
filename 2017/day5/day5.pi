@@ -1,0 +1,18 @@
+main => 
+    Data = read_file_lines("data.txt").map(to_int).to_array,
+    % writeln(Data),
+    time(printf("Part 1 Answer %w\n",go(Data.copy_term,1))),
+    time(printf("Part 2 Answer %w\n",go(Data.copy_term,2))).
+
+go(Data,Part) = Steps =>
+    PC = 1,
+    Steps = 0,
+    while (PC >= 1, PC <= Data.len)
+        NewPC := PC+Data[PC],
+        if (Part == 2,Data[PC]>=3) 
+            then Data[PC] := Data[PC]-1,
+            else Data[PC] := Data[PC]+1
+        end,
+        PC := NewPC,
+        Steps := Steps + 1,
+    end.
