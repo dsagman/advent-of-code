@@ -1,0 +1,24 @@
+import util.
+
+main =>
+    Data = [5,1,10,0,1,7,13,14,3,12,8,10,7,12,0,6],
+    % Data = [0,2,7,0], % example
+
+    [Part1, Part2] = find_loop(Data),
+    printf("Part 1 Answer %w\n", Part1),
+    printf("Part 2 Answer %w\n", Part2). 
+
+find_loop(Data) = [History.len, 1+History.len-find_first_of(History,Data)] =>
+    History = [], N = Data.len,
+    do
+        History := History ++ [copy_term(Data)],
+        Max = max(Data), Idx = find_first_of(Data, Max),
+        Data[Idx] := 0, I = 1,
+        while (Max > 0) 
+            Data[n_idx(Idx+I,N)] := Data[n_idx(Idx+I,N)] + 1,
+            I := I + 1, Max := Max - 1,
+        end
+    while (not membchk(Data, History)).
+
+n_idx(Idx,N) = max(1, 1+(Idx-1) mod N).
+
