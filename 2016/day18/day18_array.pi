@@ -64,12 +64,13 @@ main =>
     Data = "^^^^......^...^..^....^^^.^^^.^.^^^^^^..^...^^...^^^.^^....^..^^^.^.^^...^.^...^^.^^^.^^^^.^^.^..^.^",
     N1 = 40,
     N2 = 400_000,
-    Eval = Data.parse,
+    Eval = Data.parse.to_array,
     Safe = Eval.sum,
     foreach (I in 1..N2-1)
         if I == N1 then printf("Answer Part 1: %w\n",Safe) end,
         if I mod 50_000 == 0 then println(i=I) end,
-        Eval := eval([1]++Eval++[1]),
+        % Eval := eval([1]++Eval++[1]),
+        Eval := eval(Eval),
         Safe := Safe+Eval.sum
     end,
     printf("Answer Part 2: %w\n",Safe).
@@ -79,15 +80,16 @@ parse(['^'|T]) = [0]++parse(T).
 parse(['.'|T]) = [1]++parse(T).
 
 unparse([]) = [].
-unparse([0|T]) = "^"++unparse(T).
-unparse([1|T]) = "."++unparse(T).
+unparse(['0'|T]) = "^"++unparse(T).
+unparse(['1'|T]) = "."++unparse(T).
 
-eval([A,B]) = [].
-eval([A,B,C|T]) = check(A,B,C)++eval([B,C|T]).
+eval(Cell) = NextCell =>
+    PadCell = {1}++Cell++{1},
+    NextCell := {check(PadCell[I],PadCell[I+1],PadCell[I+2]) : I in 1..Cell.len}.
 
-check(0,_,0) = [1].
-check(1,_,1) = [1].
-check(_,_,_) = [0].
+check(0,_,0) = 1.
+check(1,_,1) = 1.
+check(_,_,_) = 0.
 
 % just as fast
 % check(0,0,0) = [1].
