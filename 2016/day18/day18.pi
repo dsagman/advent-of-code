@@ -69,17 +69,14 @@ main =>
     foreach (I in 1..N2-1)
         if I == N1 then printf("Answer Part 1: %w\n",Safe) end,
         if I mod 50_000 == 0 then println(i=I) end,
-        Eval := eval("1"++Eval++"1"),
-        % Eval := eval("1"++Eval++"1",Rule),
-        % println(eval=Eval.unparse),
+        Eval := eval([1]++Eval++[1]),
         Safe := Safe+Eval.map(to_int).sum
     end,
     printf("Answer Part 2: %w\n",Safe).
 
-
 parse([]) = [].
-parse(['^'|T]) = "0"++parse(T).
-parse(['.'|T]) = "1"++parse(T).
+parse(['^'|T]) = [0]++parse(T).
+parse(['.'|T]) = [1]++parse(T).
 
 unparse([]) = [].
 unparse(['0'|T]) = "^"++unparse(T).
@@ -88,16 +85,21 @@ unparse(['1'|T]) = "."++unparse(T).
 eval([A,B]) = [].
 eval([A,B,C|T]) = check(A,B,C)++eval([B,C|T]).
 
+check(0,_,0) = [1].
+check(1,_,1) = [1].
+check(_,_,_) = [0].
 
-check('0','0','0') = "1".
-check('0','0','1') = "0".
-check('0','1','0') = "1".
-check('0','1','1') = "0".
-check('1','0','0') = "0".
-check('1','0','1') = "1".
-check('1','1','0') = "0".
-check('1','1','1') = "1".
+% just as fast
+% check(0,0,0) = [1].
+% check(0,0,1) = [0].
+% check(0,1,0) = [1].
+% check(0,1,1) = [0].
+% check(1,0,0) = [0].
+% check(1,0,1) = [1].
+% check(1,1,0) = [0].
+% check(1,1,1) = [1].
 
+% more flexible to use a rule, but half as fast
 % Rule = [0,2,5,7],
 
 % eval([A,B],Rule) = [].
