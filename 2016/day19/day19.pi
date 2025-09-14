@@ -25,40 +25,45 @@
 % Your puzzle input is 3004953.
 
 main =>
+
+
+    % test the closed form solution against iterative
+    % foreach (N1 in 1..100)       
+    %     E = [I : I in 1..N1],
+    %     while (E.len > 1)
+    %         % E := steal1(E)
+    %         E := steal2(E)
+    %     end,
+    %     % println([E[1],part1(N1)]),
+    %     println([E[1],part2(N1)]),
+    % end,
     N = 3004953,
-    println(nbase2=N.to_radix_string(2)),
-    println(nbase3=N.to_radix_string(3)),
     printf("Answer Part 1: %w\n",part1(N)),
     printf("Answer Part 2: %w\n",part2(N)).
 
-% closed form solution for both
+% closed form solutions
 part1(N) = 2*N.to_binary_string.tail.parse_radix_string(2)+1.
 
 % inspired by https://oeis.org/A334473
 part2(N) = R =>
-    Nbase3 = N.to_radix_string(3), R = Nbase3.tail.parse_radix_string(3),
-    if (Nbase3[1] = '1', sum(Nbase3.tail.map(to_int)) == 0) then R := N end,
-    if Nbase3[1] = '2' then 
-        X = ("1"++['0' : I in 1..Nbase3.len-1]).parse_radix_string(3),
-        R := 2*R + X
-    end.
+    Nbase3 = N.to_radix_string(3), 
+    R = Nbase3.tail.parse_radix_string(3),
+    K = 3 ** (Nbase3.len-1),
+    if N = K then R := N end,
+    if Nbase3[1] = '2' then R := 2*R + K end.
+
+% iterative solutions
+steal1(E) = slice(E,3)++[E[1]]. 
+
+steal2(E) = NewE =>
+    NewE = delete(E,E[1+E.len div 2]),
+    NewE := slice(NewE,2)++[NewE[1]]. 
 
 
-   
-    % foreach (N1 in 1..150)       
-    %     E = [I : I in 1..N1],
-    %     while (E.len > 1)
-    %         E := steal2(E),
-    %     end,
-    %     println([E[1],part2(N1)]),
-    % end,
-
-% steal2(E) = NewE =>
-%     Half = (1+E.len div 2),
-%     NewE = delete(E,E[Half]),
-%     NewE := slice(NewE,2)++[NewE[1]]. 
 
 
+
+% part 1 iterative solution, initial approach
 % steal(E,N) =>
 %     foreach (I in 1..N-1, E[I] != 0)
 %         J := find_nz(E,I,N),
