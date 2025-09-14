@@ -1,0 +1,15 @@
+import cp.
+import util.
+
+main =>
+    Data = read_file_lines("day.txt"),
+    Ranges = [[P[1].to_int,P[2].to_int] : D in Data, P=split(D,"-")],
+    Max = max(Ranges.flatten),
+    println(max=Max),
+    IP :: 1..Max,
+    foreach (R in Ranges)
+        notin(IP, R[1]..R[2]),
+    end,
+    println(ip=IP),
+    solve($[min(IP)],IP),
+    println(ipsolved=IP).
