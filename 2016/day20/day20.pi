@@ -2,14 +2,36 @@ import cp.
 import util.
 
 main =>
+    % Data = read_file_lines("test"),
     Data = read_file_lines("day.txt"),
-    Ranges = [[P[1].to_int,P[2].to_int] : D in Data, P=split(D,"-")],
-    Max = max(Ranges.flatten),
-    println(max=Max),
-    IP :: 1..Max,
-    foreach (R in Ranges)
-        notin(IP, R[1]..R[2]),
+    R = [[P[1].to_int,
+          P[2].to_int] 
+        : D in Data, P=split(D,"-")],
+    Max = max(R.flatten),
+    IP :: 0..Max,
+    % IP = new_bv(32),
+
+    % IP = new_bv(3),
+    println(IP),
+
+    foreach (I in 1..R.len)
+        println(R[I]),
+        L = R[I,1], H = R[I,2],
+        (notin(IP, L..H)),
+        % LBV = L.int_to_bv, HBV = H.int_to_bv,
+        % println([L=L,H=H]),
+        % foreach (J in L..H),
+        %     bv_neq(IP,J.int_to_bv)
+        % end,
+        %  bv_gt(A,B): Forces bit-vector A to be greater than bit-vector B (A > B).
+        % (bv_gt(LBV,IP) #/\ bv_gt(IP,HBV))
     end,
-    println(ip=IP),
-    solve($[min(IP)],IP),
-    println(ipsolved=IP).
+    % println(ip=IP),
+    solve([$ffd,$max(IP)],IP),
+    % Sols = solve_all(IP),
+    % foreach (S in Sols),
+    %     println(s=S)
+    % end,
+    % solve(IP),
+    println(ipsolved=IP),
+    println(ipsolved=IP.bv_to_int).
