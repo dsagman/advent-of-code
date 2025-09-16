@@ -1,0 +1,94 @@
+import util.
+
+/*
+swap position 4 with position 0 swaps the first and last letters, producing the input for the next step, ebcda.
+swap letter d with letter b swaps the positions of d and b: edcba.
+reverse positions 0 through 4 causes the entire string to be reversed, producing abcde.
+rotate left 1 step shifts all letters left one position, causing the first letter to wrap to the end of the string: bcdea.
+move position 1 to position 4 removes the letter at position 1 (c), then inserts it at position 4 (the end of the string): bdeac.
+move position 3 to position 0 removes the letter at position 3 (a), then inserts it at position 0 (the front of the string): abdec.
+rotate based on position of letter b finds the index of letter b (1), then rotates the string right once plus a number of times equal to that index (2): ecabd.
+rotate based on position of letter d finds the index of letter d (4), then rotates the string right once, plus a number of times equal to that index, plus an additional time because the index was at least 4, for a total of 6 right rotations: decab.
+
+abcde x
+ebcda x
+edcba x
+abcde x
+bcdea x
+bdeac x
+abdec x
+ecabd
+decab
+*/
+
+/*
+swap position X with position Y means that the letters at indexes X and Y (counting from 0) should be swapped.
+swap letter X with letter Y means that the letters X and Y should be swapped (regardless of where they appear in the string).
+rotate left/right X steps means that the whole string should be rotated; for example, one right rotation would turn abcd into dabc.
+rotate based on position of letter X means that the whole string should be rotated to the right based on the index of letter X (counting from 0) as determined before this instruction does any rotations. Once the index is determined, rotate the string to the right one time, plus a number of times equal to that index, plus one additional time if the index was at least 4.
+reverse positions X through Y means that the span of letters at indexes X through Y (including the letters at X and Y) should be reversed in order.
+move position X to position Y means that the letter which is at index X should be removed from the string, then inserted such that it ends up at index Y.
+*/
+main =>
+    % Cmds = read_file_lines("test").map(split), % example
+    % S = "abcde", 
+    Cmds = read_file_lines("day.txt").map(split),
+    S = "abcdefgh",
+    foreach (C in Cmds, C != [])
+        S := apply(("my_"++C[1]).to_atom,slice(C,2),S)
+    end,
+    println("done!").
+
+my_swap(Cs,S) = S => 
+    if Cs[1] = "position" 
+        then P1=Cs[2].to_int+1, P2=Cs[5].to_int+1,
+        else nth(P1,S,Cs[2].to_atom), nth(P2,S,Cs[5].to_atom),
+    end,
+    T = S[P1], S[P1] := S[P2], S[P2] := T,
+    println(["swappin!",Cs,S]).
+
+
+% one right rotation would turn abcd into dabc
+% one left rotation would turn abcd into bcda
+my_rotate(Cs,S) = S => 
+    if Cs[1] = "left"  then 
+        N = Cs[2].to_int, 
+        S := leftn(S,N) 
+    end,
+    if Cs[1] = "right" then 
+        N = Cs[2].to_int, 
+        S := rightn(S,N)
+    end,
+    if Cs[1] = "based" then 
+        nth(N,S,Cs[6].to_atom),
+        N := N - 1,  % 0 index
+    % println([n=N,s=S,x=Cs[2].to_atom]),
+        S := right1(S), 
+    % println(s=S),
+        S := rightn(S,N),
+    % println(s=S),
+        if N >= 4 then S := right1(S) end,
+    end,
+    println(["rotatin!",Cs,S]).
+
+right1(S)   = S.drop(S.len-1)++S.take(S.len-1).
+rightn(S,N) = S.drop(S.len-N)++S.take(S.len-N).
+leftn(S,N)  = S.drop(N)++S.take(N).
+
+my_reverse(Cs,S) = S => 
+    P1=Cs[2].to_int+1, P2=Cs[4].to_int+1,
+    if P1 > 1 then L = slice(S,1,P1-1) else L = [] end,
+    if P2 < S.len then R = slice(S,P2+1) else R = [] end,
+    M = slice(S,P1,P2).reverse,
+    S := L++M++R,
+    println(["reversin!",Cs,S]).
+
+
+my_move(Cs,S) = S => 
+    SP1 = S[Cs[2].to_int+1], P2 = Cs[5].to_int+1,
+    S := delete(S, SP1),
+    S := insert(S, P2, SP1),
+    println(["movein!",Cs,S]).
+
+
+

@@ -7,8 +7,10 @@ main =>
     Data = read_file_lines("day.txt"),
     Rs = [[P[1], P[2]].map(to_int) : D in Data, P=split(D,"-")],
     IP :: 0..max(Rs.flatten),
+    % IP = new_bv(32) 
     foreach (R in Rs)
-        (IP #< R[1] #\/ IP #> R[2]),
+        % (bv_gt(R[1].int_to_bv,IP) #\/ bv_gt(IP,R[2].int_to_bv)) % doesn't work
+        (IP #< R[1] #\/ IP #> R[2])
     end,
     Sols = solve_all([$seq],IP), % sub 4 seconds for sat
     printf("Answer Part 1: %w\n",min(Sols)),
