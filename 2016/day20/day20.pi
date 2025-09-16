@@ -4,7 +4,7 @@ import util.
 main =>
     nolog,
     % Data = read_file_lines("test"),
-    Data = read_file_lines("day.txt"),
+    Data = read_file_lines("day"),
     Rs = [[P[1], P[2]].map(to_int) : D in Data, P=split(D,"-")],
     IP :: 0..max(Rs.flatten),
     % IP = new_bv(32) 
