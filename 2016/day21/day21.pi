@@ -29,23 +29,46 @@ rotate based on position of letter X means that the whole string should be rotat
 reverse positions X through Y means that the span of letters at indexes X through Y (including the letters at X and Y) should be reversed in order.
 move position X to position Y means that the letter which is at index X should be removed from the string, then inserted such that it ends up at index Y.
 */
+import cp.
 main =>
+    
     % Cmds = read_file_lines("test").map(split), % example
-    % S = "abcde", 
+    % Part1 = "abcde", 
     Cmds = read_file_lines("day.txt").map(split),
-    S = "abcdefgh",
+    Part1 = "abcdefgh",
+    printf("Part 1 Answer: %w\n",part1(Part1,Cmds)),
+
+    Part2 = "fbgdceah",
+    Ps = permutations(Part1),
+    Exit = false,
+    Decode = "",
+    foreach (P in Ps, break(Exit))
+        if part1(P,Cmds) = Part2
+        then Decode := P, Exit := true
+        end
+    end,
+    printf("Part 2 Answer: %w\n",Decode).
+
+
+
+
+str_to_ilist(Str) = [ord(S)-ord(a)+1 : S in Str].
+ilist_to_str(List) = [chr(I+ord(a)-1) : I in List].
+
+part1(S,Cmds) = R =>
     foreach (C in Cmds, C != [])
         S := apply(("my_"++C[1]).to_atom,slice(C,2),S)
     end,
-    println("done!").
+    R = S.
+
 
 my_swap(Cs,S) = S => 
     if Cs[1] = "position" 
         then P1=Cs[2].to_int+1, P2=Cs[5].to_int+1,
         else nth(P1,S,Cs[2].to_atom), nth(P2,S,Cs[5].to_atom),
     end,
-    T = S[P1], S[P1] := S[P2], S[P2] := T,
-    println(["swappin!",Cs,S]).
+    T = S[P1], S[P1] := S[P2], S[P2] := T.
+    % println(["swappin!",Cs,S]).
 
 
 % one right rotation would turn abcd into dabc
@@ -62,14 +85,11 @@ my_rotate(Cs,S) = S =>
     if Cs[1] = "based" then 
         nth(N,S,Cs[6].to_atom),
         N := N - 1,  % 0 index
-    % println([n=N,s=S,x=Cs[2].to_atom]),
         S := right1(S), 
-    % println(s=S),
         S := rightn(S,N),
-    % println(s=S),
         if N >= 4 then S := right1(S) end,
-    end,
-    println(["rotatin!",Cs,S]).
+    end.
+    % println(["rotatin!",Cs,S]).
 
 right1(S)   = S.drop(S.len-1)++S.take(S.len-1).
 rightn(S,N) = S.drop(S.len-N)++S.take(S.len-N).
@@ -80,15 +100,15 @@ my_reverse(Cs,S) = S =>
     if P1 > 1 then L = slice(S,1,P1-1) else L = [] end,
     if P2 < S.len then R = slice(S,P2+1) else R = [] end,
     M = slice(S,P1,P2).reverse,
-    S := L++M++R,
-    println(["reversin!",Cs,S]).
+    S := L++M++R.
+    % println(["reversin!",Cs,S]).
 
 
 my_move(Cs,S) = S => 
     SP1 = S[Cs[2].to_int+1], P2 = Cs[5].to_int+1,
     S := delete(S, SP1),
-    S := insert(S, P2, SP1),
-    println(["movein!",Cs,S]).
+    S := insert(S, P2, SP1).
+    % println(["movein!",Cs,S]).
 
 
 
