@@ -1,0 +1,48 @@
+
+import util.
+
+main =>
+    Data = read_file_lines("day.txt").drop(2).map(split).map(parse),
+    G = make_grid(Data),
+    get_global_map().put(bounds,G.bounds), 
+
+    printf("Answer Part 1 : %w\n",part1(G)).
+
+
+% 877 is too low
+
+part1(G) = Valid =>
+    [W,_,H,_] = get_global_map().get(bounds),
+    Valid = 0,
+    foreach ([Xa,Ya] = [As,Au,Aa] in G, [Xb,Yb] = [Bs,Bu,Ba] in G, (Xa+Ya*(W+1) < Xb+Yb*(W+1)))
+        if (Au != 0, Au < Ba) then Valid := Valid + 1 end,
+        if (Bu != 0, Bu < Aa) then Valid := Valid + 1 end 
+    end.
+
+% /dev/grid/node-x0-y0     93T   67T    26T   72%
+% Filesystem              Size  Used  Avail  Use%
+parse([Fs,Size,Used,Avail,Pct]) = [[X,Y],[S,U,A]] =>
+    Fs := Fs.split("-"),
+    X = Fs[2].drop(1).to_int,
+    Y = Fs[3].drop(1).to_int,
+    S = Size.take(Size.len-1).to_int,
+    U = Used.take(Used.len-1).to_int,
+    A = Avail.take(Avail.len-1).to_int.
+
+bounds(G) = [G.keys.map(first).max, G.keys.map(first).min,
+             G.keys.map(last).max,  G.keys.map(last).min].
+
+make_grid(Data) = G =>
+    G = new_map(),
+    foreach (D in Data)
+        put(G, D[1], D[2])
+    end.
+
+table
+nbors([X,Y]) = Nbors =>
+    [MaxX,MinX,MaxY,MinY] = get_global_map().get(bounds),
+    println([MaxX,MinX,MaxY,MinY]),
+    Nbors = [[NX,NY] : [DY,DX] in [[-1,0],[1,0],[0,1],[0,-1]], 
+            NX = X+DX, NY = Y+DY, 
+            between(MinY,MaxY,NY), between(MinX,MaxX,NX)].
+
