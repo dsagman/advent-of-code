@@ -1,53 +1,123 @@
-% --- Day 12: Leonardo's Monorail ---
-% You finally reach the top floor of this building: a garden with a slanted glass ceiling. Looks like there are no more stars to be had.
-% While sitting on a nearby bench amidst some tiger lilies, you manage to decrypt some of the files you extracted from the servers downstairs.
-% According to these documents, Easter Bunny HQ isn't just this building - it's a collection of buildings in the nearby area. They're all connected by a local monorail, and there's another building not far from here! Unfortunately, being night, the monorail is currently not operating.
-% You remotely connect to the monorail control systems and discover that the boot sequence expects a password. The password-checking logic (your puzzle input) is easy to extract, but the code it uses is strange: it's assembunny code designed for the new computer you just assembled. You'll have to execute the code and get the password.
-% The assembunny code you've extracted operates on four registers (a, b, c, and d) that start at 0 and can hold any integer. However, it seems to make use of only a few instructions:
-%     cpy x y copies x (either an integer or the value of a register) into register y.
-%     inc x increases the value of register x by one.
-%     dec x decreases the value of register x by one.
-%     jnz x y jumps to an instruction y away (positive means forward; negative means backward), but only if x is not zero.
-% The jnz instruction moves relative to itself: an offset of -1 would continue at the previous instruction, while an offset of 2 would skip over the next instruction.
-% For example:
-% cpy 41 a
-% inc a
-% inc a
+% --- Day 23: Safe Cracking ---
+
+% This is one of the top floors of the nicest tower in EBHQ. The Easter Bunny's private office is here, complete with a safe hidden behind a painting, and who wouldn't hide a star in a safe behind a painting?
+
+% The safe has a digital screen and keypad for code entry. A sticky note attached to the safe has a password hint on it: "eggs". The painting is of a large rabbit coloring some eggs. You see 7.
+
+% When you go to type the code, though, nothing appears on the display; instead, the keypad comes apart in your hands, apparently having been smashed. Behind it is some kind of socket - one that matches a connector in your prototype computer! You pull apart the smashed keypad and extract the logic circuit, plug it into your computer, and plug your computer into the safe.
+
+% Now, you just need to figure out what output the keypad would have sent to the safe. You extract the assembunny code from the logic chip (your puzzle input).
+
+% The code looks like it uses almost the same architecture and instruction set that the monorail computer used! You should be able to use the same assembunny interpreter for this as you did there, but with one new instruction:
+
+% tgl x toggles the instruction x away (pointing at instructions like jnz does: positive means forward; negative means backward):
+
+% For one-argument instructions, inc becomes dec, and all other one-argument instructions become inc.
+% For two-argument instructions, jnz becomes cpy, and all other two-instructions become jnz.
+% The arguments of a toggled instruction are not affected.
+% If an attempt is made to toggle an instruction outside the program, nothing happens.
+% If toggling produces an invalid instruction (like cpy 1 2) and an attempt is later made to execute that instruction, skip it instead.
+% If tgl toggles itself (for example, if a is 0, tgl a would target itself and become inc a), the resulting instruction is not executed until the next time it is reached.
+
+% For example, given this program:
+
+% cpy 2 a
+% tgl a
+% tgl a
+% tgl a
+% cpy 1 a
 % dec a
-% jnz a 2
 % dec a
-% The above code would set register a to 41, increase its value by 2, decrease its value by 1, and then skip the last dec a (because a is not zero, so the jnz a 2 skips it), leaving register a at 42. When you move past the last instruction, the program halts.
-% After executing the assembunny code in your puzzle input, what value is left in register a?
-% Your puzzle answer was 317993.
-% --- Part Two ---
-% As you head down the fire escape to the monorail, you notice it didn't start; register c needs to be initialized to the position of the ignition key.
-% If you instead initialize register c to be 1, what value is now left in register a?
-% Your puzzle answer was 9227647.
+
+% cpy 2 a initializes register a to 2.
+% The first tgl a toggles an instruction a (2) away from it, which changes the third tgl a into inc a.
+% The second tgl a also modifies an instruction 2 away from it, which changes the cpy 1 a into jnz 1 a.
+% The fourth line, which is now inc a, increments a to 3.
+% Finally, the fifth line, which is now jnz 1 a, jumps a (3) instructions ahead, skipping the dec a instructions.
+
+% In this example, the final value in register a is 3.
+
+% The rest of the electronics seem to place the keypad entry (the number of eggs, 7) in register a, run the code, and then send the value left in register a to the safe.
+
+% What value should be sent to the safe?
+
 
 import util.
 
 main => 
     % Program = read_file_lines("test").map(split).map(parse),
-    Program = read_file_lines("day.txt").map(split).map(parse),
+    % Program = read_file_lines("day").map(split).map(parse),
+    % day2 is my analyzed code
+    % the program computes n!+6696
+    Program = read_file_lines("day3").map(del_com).map(split).map(parse),
 
-    Part1 = run(Program,new_map(["a"=0,"b"=0,"c"=0,"d"=0]),1),
+    Part1 = run(Program,new_map(["a"=7,"b"=0,"c"=0,"d"=0]),1),
     printf("Answer Part 1: %w\n",get(Part1, "a")),
+    % Answer Part 1: 11736
 
-    Part2 = run(Program,new_map(["a"=0,"b"=0,"c"=1,"d"=0]),1),
+    Program := read_file_lines("day3").map(del_com).map(split).map(parse),
+    Part2 = run(Program,new_map(["a"=12,"b"=0,"c"=0,"d"=0]),1),
     printf("Answer Part 2: %w\n",get(Part2, "a")).
+    % Answer Part 2: 479008296
 
 run(Program,S,PC) = NewS =>
     while (between(1,Program.len,PC))
         [Op,Args] = Program[PC],
-        PC := apply(Op,Args,S,PC),
+        if Op != $tgl 
+            then PC := apply(Op,Args,S,PC)
+            else [NPC,NProgram] = apply(Op,Args,S,PC,Program),
+                 PC := NPC,
+                 Program := NProgram
+        end,
     end,
     NewS = S.
+
+del_com([])      = [].
+del_com(['  '|T]) = " "++del_com(T).
+del_com(['%'|_]) = [].
+del_com([H|T])   = [H]++del_com(T).
 
 parse([H|T]) = [(H).to_atom,T.map(parse_n)].
 parse_n(X) = Xn => if between(97,122,ord(X[1])) then Xn = X else Xn = X.to_int end.
 
-cpy([X,Y],S,PC) = NPC=> NPC = PC+1,
-    if number(X) then put(S,Y,X) else V = get(S,X), put(S,Y,V) end.
+nop(_,_,PC) = NPC => NPC = PC+1.
+
+% add reg x + reg y => reg z
+add([X,Y,Z],S,PC) = NPC => 
+    NPC = PC+1,
+    if number(X) then Rx = X else Rx = get(S,X) end,
+    Ry = get(S,Y),
+    put(S,Z,Rx+Ry).
+
+
+% mul reg x * reg y => reg z
+mul([X,Y,Z],S,PC) = NPC => 
+    NPC = PC+1,
+    Rx = get(S,X),
+    Ry = get(S,Y),
+    put(S,Z,Rx*Ry).
+
+
+tgl([X],S,PC,Program) = [NPC,Program] => 
+    NPC = PC+1, 
+    if number(X) then Tn = X else Tn = get(S,X) end,
+    if (PC+Tn > 0, PC+Tn <= Program.len) then
+        [TOp,TArgs] = Program[PC+Tn],
+        (
+            (TOp == $inc,NOp = $dec);
+            (TOp == $dec,NOp = $inc);
+            (TOp == $jnz,NOp = $cpy);
+            (TOp == $cpy,NOp = $jnz);
+            (TOp == $tgl,NOp = $inc);
+            (TOp == $nop,NOp = $nop)
+        ),
+        Program[PC+Tn] := [NOp,TArgs],
+    end.
+
+cpy([X,Y],S,PC) = NPC => 
+    NPC = PC+1,
+    if (number(X),not(number(Y))) 
+    then put(S,Y,X) else V = get(S,X), put(S,Y,V) end.
 
 inc([X],S,PC) = NPC => NPC = PC+1, V = get(S,X), put(S,X,V+1).
 
@@ -55,4 +125,6 @@ dec([X],S,PC) = NPC => NPC = PC+1, V = get(S,X), put(S,X,V-1).
 
 jnz([X,Y],S,PC) = NPC => 
     if number(X) then Xn = X else Xn = get(S,X) end,
-    if Xn != 0 then NPC = PC+Y else NPC = PC+1 end.
+    if number(Y) then Yn = Y else Yn = get(S,Y) end,
+    if Xn != 0 then NPC = PC+Yn else NPC = PC+1 end.
+

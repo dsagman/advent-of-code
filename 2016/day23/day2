@@ -1,0 +1,26 @@
+cpy a b       % n! + 6696
+dec b
+cpy a d
+nop           % cpy 0 a
+nop           % cpy b c
+nop           % inc a
+nop           % dec c
+nop           % jnz c -2
+nop           % dec d
+mul b d a     % jnz d -5
+dec b  
+nop           % cpy b c
+nop           % cpy c d
+add b b c     % dec d
+nop           % inc c
+nop           % jnz d -2
+nop           % tgl c
+nop           % cpy -16 c
+jnz c -16     % jnz 1 c
+add 6696 a a  % cpy 93 c
+nop           % jnz 72 d
+nop           % inc a
+nop           % jnz d -2
+nop           % inc d
+nop           % inc c
+nop           % jnz c -5

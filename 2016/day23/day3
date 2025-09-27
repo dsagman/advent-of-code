@@ -1,0 +1,7 @@
+cpy a b       % n! + 6696
+dec b
+mul b a a     
+dec b  
+add b b c     
+jnz c -3     
+add 6696 a a  
