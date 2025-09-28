@@ -1,0 +1,100 @@
+import util.
+
+main => 
+    % Program = read_file_lines("test").map(split).map(parse),
+
+    Program = read_file_lines("day").map(del_com).map(split).map(parse),
+    InitA = 1,
+    while (true)
+        S := run(Program,new_map(["a"=InitA,"b"=0,"c"=0,"d"=0,"out"=[]]),1),
+        InitA := InitA+1,
+        println(initA=InitA)
+    end.
+
+    % Answer Part 1: 189
+
+
+run(Program,S,PC) = NewS =>
+    Fail = false,
+    % while (between(1,Program.len,PC))
+    while (Fail==false)
+        [Op,Args] = Program[PC],
+        if Op != $tgl 
+            then PC := apply(Op,Args,S,PC)
+            else [NPC,NProgram] = apply(Op,Args,S,PC,Program),
+                 PC := NPC,
+                 Program := NProgram
+        end,
+        Out = get(S,"out"),
+        if (Out.len == 2,sum(Out) != 1) 
+            then println(fail), Fail:=true
+        end
+    end,
+    NewS = S.
+
+del_com([])      = [].
+del_com(['  '|T]) = " "++del_com(T).
+del_com(['%'|_]) = [].
+del_com([H|T])   = [H]++del_com(T).
+
+parse([H|T]) = [(H).to_atom,T.map(parse_n)].
+parse_n(X) = Xn => if between(97,122,ord(X[1])) then Xn = X else Xn = X.to_int end.
+
+out([X],S,PC) = NPC =>
+    NPC = PC+1,
+    Out = get(S,"out"),
+    if number(X) then NOut = X else NOut = get(S,X) end,
+    if Out.len == 0 
+        then put(S,"out",[NOut])
+        else put(S,"out",[Out.last,NOut])
+    end.
+
+
+nop(_,_,PC) = NPC => NPC = PC+1.
+
+% add reg x + reg y => reg z
+add([X,Y,Z],S,PC) = NPC => 
+    NPC = PC+1,
+    if number(X) then Rx = X else Rx = get(S,X) end,
+    Ry = get(S,Y),
+    put(S,Z,Rx+Ry).
+
+
+% mul reg x * reg y => reg z
+mul([X,Y,Z],S,PC) = NPC => 
+    NPC = PC+1,
+    Rx = get(S,X),
+    Ry = get(S,Y),
+    put(S,Z,Rx*Ry).
+
+
+tgl([X],S,PC,Program) = [NPC,Program] => 
+    NPC = PC+1, 
+    if number(X) then Tn = X else Tn = get(S,X) end,
+    if (PC+Tn > 0, PC+Tn <= Program.len) then
+        [TOp,TArgs] = Program[PC+Tn],
+        (
+            (TOp == $inc,NOp = $dec);
+            (TOp == $dec,NOp = $inc);
+            (TOp == $jnz,NOp = $cpy);
+            (TOp == $cpy,NOp = $jnz);
+            (TOp == $tgl,NOp = $inc);
+            (TOp == $nop,NOp = $nop)
+        ),
+        Program[PC+Tn] := [NOp,TArgs],
+    end.
+
+cpy([X,Y],S,PC) = NPC => 
+    NPC = PC+1,
+    if (number(X),not(number(Y))) 
+    then put(S,Y,X) else V = get(S,X), put(S,Y,V) end.
+
+inc([X],S,PC) = NPC => NPC = PC+1, V = get(S,X), put(S,X,V+1).
+
+dec([X],S,PC) = NPC => NPC = PC+1, V = get(S,X), put(S,X,V-1).
+
+jnz([X,Y],S,PC) = NPC => 
+    if number(X) then Xn = X else Xn = get(S,X) end,
+    if number(Y) then Yn = Y else Yn = get(S,Y) end,
+    if Xn != 0 then NPC = PC+Yn else NPC = PC+1 end.
+
