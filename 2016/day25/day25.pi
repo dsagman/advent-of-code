@@ -1,8 +1,6 @@
 import util.
 
 main => 
-    % Program = read_file_lines("test").map(split).map(parse),
-
     Program = read_file_lines("day").map(del_com).map(split).map(parse),
     InitA = 1,
     while (true)

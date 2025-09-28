@@ -1,0 +1,78 @@
+import util.
+import cp.
+
+
+main =>
+    % Data = read_file_lines("test").map(parse),
+    Data = read_file_lines("data").map(parse),
+    % Data = read_file_lines("data2").map(parse),
+    Ns = [N : (N,_) in Data],
+    Es = [Es : (_,Es) in Data].flatten,
+    cl_facts_table(Ns++Es),
+    Root = part1(),
+    printf("Answer Part 1: %w\n",Root),
+    % Answer Part 1: aapssr
+
+    printf("Answer Part 2: %w\n",part2(Root)).
+    % part 2 answer 1458
+
+
+part1() = R =>
+    node(N,_),
+    R = root(N).
+
+part2(N) = Ans =>
+    Search = N,
+    Ans = 0,
+    while (grand_children(Search) != [])
+        [SearchN,Err] = unbalanced(Search),
+        node(SearchN,SearchW),
+        println([s=SearchN,sw=SearchW,err=Err]),
+        Search := SearchN,
+        Ans := SearchW + Err
+    end.
+
+unbalanced(N) = [U,Err] =>
+    node(N,_),
+    Cws = child_weights(N),
+    sum(Cws) #> 0,
+    not all_equal(Cws),
+    Max #= max(Cws), Min #= min(Cws),
+    Nmax #= count(Max, Cws),
+    if Nmax = 1 
+        then Val = Max, Err = Min-Max 
+        else Val = Min, Err = Max-Min
+    end,
+    U #= [C : C in children(N),node(C,_),W=weight(C), W==Val].head,
+    solve(U).
+
+% helper functions
+
+root(N) = R => if edge(P,N) then R = root(P) else R = N end.
+
+children(N) = find_all(C, $edge(N,C)).
+
+grand_children(N) = [children(C) : C in children(N)].flatten.
+
+weight(N) = W => 
+    node(N,Wn),
+    Wc = sum([weight(C) : C in children(N)]),
+    W = Wn + Wc.
+
+child_weights(N) = [weight(C) : C in children(N)].
+
+all_equal(L) =>
+    foreach(I in 2..L.len) L[I-1] #= L[I] end.
+
+parse(Line) = (N,Es) =>
+    [N1,N2] = Line.split.take(2),
+    W  = slice(N2, 2, N2.len-1).to_int,
+    N = $node(N1,W),
+    Rhs = find_first_of(Line,'>'),
+    if Rhs > 1  
+        then Es = [$edge(N1,C) : C in Line.drop(Rhs+1).split(", ")]
+        else Es = []
+    end.
+
+
+
