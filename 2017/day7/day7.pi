@@ -4,7 +4,7 @@ import cp.
 
 main =>
     % Data = read_file_lines("test").map(parse),
-    Data = read_file_lines("data").map(parse),
+    Data = read_file_lines("day").map(parse),
     % Data = read_file_lines("data2").map(parse),
     Ns = [N : (N,_) in Data],
     Es = [Es : (_,Es) in Data].flatten,

@@ -1,0 +1,33 @@
+import util.
+
+main =>
+    Data = read_file_lines("day").map(split),
+    writeln(Data[1]),
+    S = new_map(),
+    foreach(D in Data.take(2))
+        NewS = eval(D,S),
+        S := NewS
+    end,
+    println(S),
+    println(max(S.values)).
+
+% <
+% <=
+% >
+% >=
+% ==
+% !=
+
+eval([R1,R1Op,R1X,_,R2,R2Op,R2X],S) = S =>
+    R1Val = get(S,R1,0),
+    R2Val = get(S,R2,0),
+    
+    % EvalString = ([R2Val,R2Op,R2X]).to_string.to_atom,
+    EvalString = ("0<=3").to_atom,
+    writeln(EvalString),
+    
+    % Cond = apply($cond,EvalString,true,false),
+    Cond = cond(atom(0<=3) ,true,false),
+    println(Cond),
+    if Cond then put(R1,R1Val+R1X.to_int) end.
+
