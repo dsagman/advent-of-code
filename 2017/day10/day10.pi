@@ -44,21 +44,49 @@
 % To begin, get your puzzle input.
 
 main =>
-    N = 4,
+    N = 255,
     L = {I : I in 0..N},
+    Input = [14,58,0,116,179,16,1,104,2,254,167,86,255,55,122,244],
+
+    [L1,_,_] = hash(Input,L,N,1,0),
+    printf("Answer Part 1: %w\n",L1[1]*L1[2]),
+
+    Suffix = [17, 31, 73, 47, 23],
+    InputHex = "14,58,0,116,179,16,1,104,2,254,167,86,255,55,122,244".to_codes++Suffix,
+
     P = 1,
     Skip = 0,
-    % Input = [3,4,1,5],
-    Input = [3],
-    println(L),
+    L := {I : I in 0..N},
+    foreach (I in 1..64)
+        [LN,PN,SkipN] = hash(InputHex,L,N,P,Skip),
+        L := LN,
+        P := PN,
+        Skip := SkipN,
+    end,
+    printf("Answer Part 2: %w\n",dense_hash(L)).
+
+
+nidx(Idx,N) = 1+((Idx-1) mod (N+1)). 
+
+hash(Input,L,N,P,Skip) = [L,P,Skip] =>
     foreach(I in Input)
         Half = I div 2,
-        foreach(J in 0..(Half))
-            Temp = L[P+J],
-            L[P+J] := L[P+(I-1)-J],
-            L[P+(I-1)-J] := Temp 
-        end
-    end,
-    println(L).
+        foreach(J in 0..(Half-1))
+            Start = nidx(P+J,N),
+            End = nidx(P+(I-1)-J,N),
+            Temp = L[Start],
+            L[Start] := L[End],
+            L[End] := Temp,
+        end,
+        P := nidx(P+I+Skip,N),
+        Skip := Skip + 1,
+    end.
 
-nidx(Idx,N) = (Idx mod N)+1. 
+dense_hash(L) = ([reduce(^, Ln.to_list) : Ln in [slice(L, I, I+15) : I in 1..16..256]]).map(to_hex).flatten.to_lowercase.
+
+to_hex(X) = XH =>
+    XH = X.to_hex_string,
+    if XH.len == 1 then XH := ['0'|XH] end.
+
+
+
