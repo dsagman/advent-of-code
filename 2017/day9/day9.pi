@@ -59,6 +59,8 @@
 %     <{o"i!a,<{i<a>, 10 characters.
 
 % How many non-canceled characters are within the garbage in your puzzle input?
+% Part 1 Answer: 12803
+% Part 2 Answer: 6425
 
 
 main =>
@@ -66,9 +68,6 @@ main =>
     [N,_,G] = p(Data,0,1,0),
     printf("Part 1 Answer: %w\n",N),
     printf("Part 2 Answer: %w\n",G).
-
-% Part 1 Answer: 12803
-% Part 2 Answer: 6425
 
 p(['<'|T]  ,N,D,G) = g(T,N,D,G).
 p(['!',_|T],N,D,G) = p(T,N,D,G).
