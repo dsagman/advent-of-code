@@ -1,0 +1,69 @@
+
+
+
+
+% 0 <-> 2
+% 1 <-> 1
+% 2 <-> 0, 3, 4
+% 3 <-> 2, 4
+% 4 <-> 2, 3, 6
+% 5 <-> 6
+% 6 <-> 4, 5
+% 7 <-> 8
+% 8 <-> 7
+
+import util.
+import cp.
+
+main =>
+    Data = read_file_lines("test.txt").map(split).map(parse),
+    % Data = read_file_lines("day.txt").map(split).map(parse),
+    N = Data.len,
+    println(n=N),
+    B = new_array(N),
+    B :: 0..1,
+    Vs = [{Data[I,1],B[I]} : I in 1..N],
+    Es = [{V,V2,_} : D in Data, V = D[1], V2 in D[2]],
+    writeln(vs=Vs),
+    writeln(es=Es),
+    go(Vs,Es,B,N).
+
+
+go(Vs,Es,B,N) =>
+    Dest :: 1..N, 
+    Vlist = [V[1] : V in Vs],
+    member(Dest,Vlist), % without this, error ground_expected for path
+    % path(Vs,Es,0,Dest),
+    path(Vs,Es,0,5), % hardcoded gives the correct answer vlistOK = [0,2,3,4,5,6]
+    Cliq #= sum([1 : V in Vs,V[2] #= 1]),
+    solve([$max(Cliq)],[B,Es,Vs]),
+    println(vs=Vs),
+    println(es=Es),
+    VlistOK = [V[1] : V in Vs, V[2] = 1],
+    println([vlistOK=VlistOK,vlistlen=VlistOK.len]),
+    println(cliq=Cliq).
+
+parse([V,_|Es]) = [V.to_int,Es.map(parse_es)].
+parse_es(S) = S2.to_int => S2 = delete(S,',').
+
+
+%  path(Vs,Es,Src,Dest): This constraint ensures that the undirected graph represented
+% by Vs and Es is a path from Src to Dest, where Vs is a list of pairs of the form {V, B},
+% Es is a list of triplets of the form {V1 , V2 , B}, Src is a vertex, and Dest is a vertex or a list
+% of vertices. A pair {V, B} in Vs, where V is a ground term representing a vertex and B is a
+% Boolean variable, denotes that V is in the graph if and only if B = 1. A triplet {V1 , V2 , B}
+% denotes that V1 is connected with V2 by an edge in the graph if and only if B = 1 and
+% both V1 and V2 are in the graph. Note that the graph to be constructed is assumed to be
+% undirected. If there exists a triplet {V1, V2 , B} in Es, then the triplet {V2 , V1, B} will be
+% added to Es if it is not specified.
+
+
+
+    % Vmax = max([V[1] : V in Vs]),
+    % println(vmax=Vmax),
+    % Dest = new_fd_var(),
+    % Dest :: 0..Vmax,
+    % path(Vs,Es,0,3), % why does this fail?
+    % path(Vs,Es,0,Dest), % why does this say "ground_expected"?
+    % solve([Dest]).
+    % println([src=Src,dest=Dest]),
