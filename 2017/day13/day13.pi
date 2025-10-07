@@ -1,0 +1,41 @@
+import util.
+
+main =>
+    % Data = read_file_lines("test.txt").map(split).map(parse),
+    Data = read_file_lines("day.txt").map(split).map(parse),
+    MaxD = max([D : [D,_] in Data]),
+    Ds = new_array(MaxD+1), bind_vars(Ds,0),
+    foreach ([D,R] in Data)
+        Ds[D+1] := R
+    end,
+    println(Ds),
+    Sev = 0,
+    foreach (T in 0..MaxD)
+        K = cond(Ds[T+1] > 0, T mod (Ds[T+1]*2-2), 0),
+        R = Ds[T+1],
+        if (K == 0, R != 0) then print("hit! "), Sev := Sev + T * R end,
+        println([t=T,r=Ds[T+1]])
+    end,
+    println(sev=Sev).
+
+parse([D,R]) = [D.delete(':').to_int,R.to_int].
+
+
+% at 0 at every R+R-2
+
+% R = 2
+% 0,1,0,1,0,1,0
+% 0,1,2,3,4,5,6 
+
+% R = 3
+% 0,1,2,1,0,1,2,1,0
+% 0,1,2,3,4,5,6,7,8
+
+% R = 4
+% 0,1,2,3,2,1,0,2,3, 2, 1, 0
+% 0,1,2,3,4,5,6,7,8,9,10,11,12
+
+% R = 5
+% 0,1,2,3,4,3,2,1,0,1, 2, 3, 4, 3, 2, 1, 0
+% 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+

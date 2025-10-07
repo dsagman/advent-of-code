@@ -53,7 +53,7 @@ import ordset.
 main =>
     % Data = read_file_lines("test.txt").map(split).map(parse),
     Data = read_file_lines("day.txt").map(split).map(parse),
-    N = Data.len,
+    % N = Data.len,
     Vs = new_ordset([D[1]: D in Data]),
     Es = [{D[1],D[2]} : D in Data],
     
@@ -72,7 +72,7 @@ clique(Node,Es,Acc) = Final =>
     (  (membchk(Node, Acc),Final = Acc)
         ;
        (NewAcc = [Node|Acc],
-        Nbors = ([Y : {Node,Y} in Es]).flatten,
+        Nbors = ([V : {N,V} in Es, N == Node]).flatten,
         foreach (N in Nbors)
             NewAcc := clique(N,Es,NewAcc)
         end,
