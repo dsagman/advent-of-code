@@ -64,18 +64,18 @@ main =>
     printf("Answer Part 1: %w\n",count(Bs)),
 
 
-    Eqs = labels(Bs,N),
+    [Eqs, Label] = labels(Bs,N),
 
     % if we want to actually relabel
-    % Label2 = copy_term(Bs),
-    % foreach(Y in 1..N, X in 1..N, Label[Y,X] != 0)
-    %     Label2[Y,X] := Eqs[Label[Y,X]] 
-    % end,
-    % print_grid(Label2)
+    Label2 = copy_term(Bs),
+    foreach(Y in 1..N, X in 1..N, Label[Y,X] != 0)
+        Label2[Y,X] := Eqs[Label[Y,X]] 
+    end,
+    print_grid(Label2),
 
     printf("Answer Part 2: %w\n", Eqs.sort_remove_dups.len).
 
-labels(Bs,N) = Eqs =>
+labels(Bs,N) = [Eqs, Label] =>
     MaxL = 1,
     Label = copy_term(Bs),
     Es = [],
@@ -96,13 +96,15 @@ labels(Bs,N) = Eqs =>
 
     Vs = new_ordset(1..(MaxL-1)),
     Eqs = new_array(MaxL-1),
+    Count = 1,
     while (Vs.len > 0)  
         V1 := min(Vs),
         C = new_ordset(subgraph(V1,Es,[])),
         foreach (V in C)
-            Eqs[V] := C[1]
+            Eqs[V] := Count
         end,
         Vs := subtract(Vs,C),
+        Count := Count + 1
     end.
 
 
@@ -119,8 +121,9 @@ subgraph(Node,Es,Acc) = Final =>
 
 print_grid(Bs) =>
     foreach(B in slice(Bs,1,30))
-        foreach(C in slice(B,1,30))
+        foreach(C in slice(B,1,20))
             if C == 0 then print("  .") end,
+            % if C != 0 then print(chr(64+C mod 26)) end,
             if (C > 0,C < 10) then print(chr(32)),print(chr(32)), print(C) end,
             if (C > 10,C <100) then print(chr(32)),print(C) end,
             if C > 100 then print(C) end,
