@@ -57,24 +57,24 @@ main =>
     Vs = new_ordset([D[1]: D in Data]),
     Es = [{D[1],D[2]} : D in Data],
     
-    Cliques = 0,
+    SubGraphs = 0,
     while (Vs.len > 0)  
         V1 := min(Vs),
-        C = new_ordset(clique(V1,Es,[])),
+        C = new_ordset(subgraph(V1,Es,[])),
         if V1 = 0 then printf("Part 1: %w\n", C.len) end,
         Vs := subtract(Vs,C),
-        Cliques := Cliques + 1
+        SubGraphs := SubGraphs + 1
     end,
-    printf("Part 2: %w\n", Cliques).
+    printf("Part 2: %w\n", SubGraphs).
 
 
-clique(Node,Es,Acc) = Final =>
+subgraph(Node,Es,Acc) = Final =>
     (  (membchk(Node, Acc),Final = Acc)
         ;
        (NewAcc = [Node|Acc],
         Nbors = ([V : {N,V} in Es, N == Node]).flatten,
         foreach (N in Nbors)
-            NewAcc := clique(N,Es,NewAcc)
+            NewAcc := subgraph(N,Es,NewAcc)
         end,
         Final = NewAcc) ).
 

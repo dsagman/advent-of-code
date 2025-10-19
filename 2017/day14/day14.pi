@@ -1,0 +1,176 @@
+% --- Day 14: Disk Defragmentation ---
+
+% Suddenly, a scheduled job activates the system's disk defragmenter. Were the situation different, you might sit and watch it for a while, but today, you just don't have that kind of time. It's soaking up valuable system resources that are needed elsewhere, and so the only option is to help it finish its task as soon as possible.
+
+% The disk in question consists of a 128x128 grid; each square of the grid is either free or used. On this disk, the state of the grid is tracked by the bits in a sequence of knot hashes.
+
+% A total of 128 knot hashes are calculated, each corresponding to a single row in the grid; each hash contains 128 bits which correspond to individual grid squares. Each bit of a hash indicates whether that square is free (0) or used (1).
+
+% The hash inputs are a key string (your puzzle input), a dash, and a number from 0 to 127 corresponding to the row. For example, if your key string were flqrgnkx, then the first row would be given by the bits of the knot hash of flqrgnkx-0, the second row from the bits of the knot hash of flqrgnkx-1, and so on until the last row, flqrgnkx-127.
+
+% The output of a knot hash is traditionally represented by 32 hexadecimal digits; each of these digits correspond to 4 bits, for a total of 4 * 32 = 128 bits. To convert to bits, turn each hexadecimal digit to its equivalent binary value, high-bit first: 0 becomes 0000, 1 becomes 0001, e becomes 1110, f becomes 1111, and so on; a hash that begins with a0c2017... in hexadecimal would begin with 10100000110000100000000101110000... in binary.
+
+% Continuing this process, the first 8 rows and columns for key flqrgnkx appear as follows, using # to denote used squares, and . to denote free ones:
+
+% ##.#.#..-->
+% .#.#.#.#   
+% ....#.#.   
+% #.#.##.#   
+% .##.#...   
+% ##..#..#   
+% .#...#..   
+% ##.#.##.-->
+% |      |   
+% V      V   
+
+
+% In this example, 8108 squares are used across the entire 128x128 grid.
+
+% Given your actual key string, how many squares are used?
+
+% Your puzzle input is ffayrhll.
+
+% --- Part Two ---
+
+% Now, all the defragmenter needs to know is the number of regions. A region is a group of used squares that are all adjacent, not including diagonals. Every used square is in exactly one region: lone used squares form their own isolated regions, while several adjacent squares all count as a single region.
+
+% In the example above, the following nine regions are visible, each marked with a distinct digit:
+
+% 11.2.3..-->
+% .1.2.3.4   
+% ....5.6.   
+% 7.8.55.9   
+% .88.5...   
+% 88..5..8   
+% .8...8..   
+% 88.8.88.-->
+% |      |   
+% V      V   
+
+% Of particular interest is the region marked 8; while it does not appear contiguous in this small view, all of the squares marked 8 are connected when considering the whole 128x128 grid. In total, in this example, 1242 regions are present.
+
+% How many regions are present given your key string?
+
+
+import util.
+import ordset.
+
+main =>
+    % In = "flqrgnkx", % test case
+    In = "ffayrhll",
+    N = 128,
+    Ins = [In++"-"++I.to_string : I in 0..(N-1)],   
+    Bs = {knot_hash(I).map(padded_binary_string).flatten.map(to_int).to_array : I in Ins},
+    printf("Answer Part 1: %w\n",count(Bs)),
+
+
+    Eqs = labels(Bs,N),
+
+    % if we want to actually relabel
+    % Label2 = copy_term(Bs),
+    % foreach(Y in 1..N, X in 1..N, Label[Y,X] != 0)
+    %     Label2[Y,X] := Eqs[Label[Y,X]] 
+    % end,
+    % print_grid(Label2)
+
+    printf("Answer Part 2: %w\n", Eqs.sort_remove_dups.len).
+
+labels(Bs,N) = Eqs =>
+    MaxL = 1,
+    Label = copy_term(Bs),
+    Es = [],
+    foreach(Y in 1..N, X in 1..N, Bs[Y,X] != 0)
+        Up = cond(Y>1,Label[Y-1,X],0),
+        Left = cond(X>1,Label[Y,X-1],0),
+        if (Left == 0, Up == 0) then Label[Y,X] := MaxL, MaxL := MaxL + 1, end,
+        if (Left >  0, Up == 0) then Label[Y,X] := Left end,
+        if (Left == 0, Up >  0) then Label[Y,X] := Up end,
+        if (Left >  0, Up >  0, Left == Up) then Label[Y,X] := Up end,
+        if (Left >  0, Up >  0, Left != Up) then 
+            K = max(Left,Up),
+            V = min(Left,Up),
+            Es := Es ++ [{V,K},{K,V}],
+            Label[Y,X] := V,
+        end
+    end,
+
+    Vs = new_ordset(1..(MaxL-1)),
+    Eqs = new_array(MaxL-1),
+    while (Vs.len > 0)  
+        V1 := min(Vs),
+        C = new_ordset(subgraph(V1,Es,[])),
+        foreach (V in C)
+            Eqs[V] := C[1]
+        end,
+        Vs := subtract(Vs,C),
+    end.
+
+
+subgraph(Node,Es,Acc) = Final =>
+    (  (membchk(Node, Acc),Final = Acc)
+        ;
+       (NewAcc = [Node|Acc],
+        Nbors = ([V : {N,V} in Es, N == Node]).flatten,
+        foreach (N in Nbors)
+            NewAcc := subgraph(N,Es,NewAcc)
+        end,
+        Final = NewAcc) ).
+
+
+print_grid(Bs) =>
+    foreach(B in slice(Bs,1,30))
+        foreach(C in slice(B,1,30))
+            if C == 0 then print("  .") end,
+            if (C > 0,C < 10) then print(chr(32)),print(chr(32)), print(C) end,
+            if (C > 10,C <100) then print(chr(32)),print(C) end,
+            if C > 100 then print(C) end,
+        end,
+        println(chr(32)),
+    end.
+
+padded_binary_string(H) = B => 
+    B = H.to_binary_string,
+    if B.len < 8 then B := ['0' : I in 1..(8-B.len)] ++ B end.
+
+count(Bs) = S => S = sum([sum(B) : B in Bs]).
+
+knot_hash(Input) = Khash =>
+    Suffix = [17, 31, 73, 47, 23],
+    InputHex = Input.to_codes++Suffix,
+    N = 255,
+    P = 1,
+    Skip = 0,
+    L := {I : I in 0..N},
+    foreach (I in 1..64)
+        [LN,PN,SkipN] = hash(InputHex,L,N,P,Skip),
+        L := LN,
+        P := PN,
+        Skip := SkipN,
+    end,
+    Khash = dense_hash(L).
+
+
+dense_hash(L) = ([reduce(^, Ln.to_list) : Ln in [slice(L, I, I+15) : I in 1..16..256]]).flatten.
+
+hash(Input,L,N,P,Skip) = [L,P,Skip] =>
+    foreach(I in Input)
+        Half = I div 2,
+        foreach(J in 0..(Half-1))
+            Start = nidx(P+J,N),
+            End = nidx(P+(I-1)-J,N),
+            Temp = L[Start],
+            L[Start] := L[End],
+            L[End] := Temp,
+        end,
+        P := nidx(P+I+Skip,N),
+        Skip := Skip + 1,
+    end.
+
+
+nidx(Idx,N) = 1+((Idx-1) mod (N+1)). 
+
+
+to_hex(X) = XH =>
+    XH = X.to_hex_string,
+    if XH.len == 1 then XH := ['0'|XH] end.
+
