@@ -97,19 +97,23 @@
 % Generator A starts with 873
 % Generator B starts with 583
 
-import util.
 
 main =>
     % A = 65, B = 8921, % test case
     A = 873, B = 583,
     Count = 0,
-    foreach (I in 1 .. 40_000_000)
+    foreach (I in 1 .. 5_000_000)
         if I mod 1_000_000 = 0 then println(i=I) end, 
         A := a(A), B := b(B),
+        % println([a=A,b=B]),
         if (A /\ 65535) == (B /\ 65535) then Count := Count + 1 end,
     end,
-    printf("Answer Part 1: %w/n",Count).
+    printf("Answer Part 2: %w\n",Count).
 
-a(X) = (X * 16807) mod 2147483647.
-b(X) = (X * 48271) mod 2147483647.
+a(X) = R => 
+    R1 = (X * 16807) mod 2147483647,
+    if (R1 mod 4 = 0) then R = R1 else R = a(R1) end.
+b(X) = R => 
+    R1 = (X * 48271) mod 2147483647,
+    if (R1 mod 8 = 0) then R = R1 else R = b(R1) end.
 
