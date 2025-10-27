@@ -91,17 +91,15 @@ main =>
                 PC[I] := NPC, Env[I] := NEnv
             while (get(Env[I],"state")!="wait"),
         end,
-        % are both receive buffers empty?
+        % println(Globals), % watch it sort the numbers!
         if sum([get(Globals,J).len : J in 1..Env.len]) == 0 then Run := false end,
     end,
     printf("Part 2 Answer: %w\n",get(Env[2],"total")).
 
-snd(Args,PC,Env,P) = [NPC,Env] => 
+snd(Args,PC,Env,P) = [PC+1,Env] => 
     Globals = get_global_map(),
-    NPC = PC + 1,
     X = av(Args[1],Env),
-    Snd = get(Globals,P,[]),
-    put(Globals,P,Snd++[X]),
+    put(Globals,P,get(Globals,P,[])++[X]),
     SndTot = get(Env,"total",0),
     put(Env,"total",SndTot+1).
 
@@ -119,33 +117,24 @@ rcv(Args,PC,Env,P) = [NPC,Env] =>
         NPC = PC+1,
     end.
 
-set(Args,PC,Env,_) = [NPC,Env] => 
-    NPC = PC + 1,
-    [_,Y] = arg_vals(Args,Env),
-    put(Env,Args[1],Y).
+set(Args,PC,Env,_) = [PC+1,Env] => 
+    [_,Y] = arg_vals(Args,Env), put(Env,Args[1],Y).
 
-add(Args,PC,Env,_) = [NPC,Env] => 
-    NPC = PC + 1,
-    [X,Y] = arg_vals(Args,Env),
-    put(Env,Args[1],X+Y).
+add(Args,PC,Env,_) = [PC+1,Env] => 
+    [X,Y] = arg_vals(Args,Env), put(Env,Args[1],X+Y).
 
-mul(Args,PC,Env,_) = [NPC,Env] => 
-    NPC = PC + 1,
-    [X,Y] = arg_vals(Args,Env),
-    put(Env,Args[1],X*Y).
+mul(Args,PC,Env,_) = [PC+1,Env] => 
+    [X,Y] = arg_vals(Args,Env), put(Env,Args[1],X*Y).
 
-wod(Args,PC,Env,_) = [NPC,Env] => 
-    NPC = PC + 1,
-    [X,Y] = arg_vals(Args,Env),
-    put(Env,Args[1],X mod Y).
+wod(Args,PC,Env,_) = [PC+1,Env] => 
+    [X,Y] = arg_vals(Args,Env), put(Env,Args[1],X mod Y).
 
 jgz(Args,PC,Env,_) = [NPC,Env] => 
     [X,Y] = arg_vals(Args,Env),
     if X > 0 then NPC = PC + Y else NPC = PC + 1 end.
 
 arg_vals(Args,Env) = [X,Y] =>
-    X = av(Args[1],Env),
-    Y = av(Args[2],Env).
+    X = av(Args[1],Env), Y = av(Args[2],Env).
 
 av(Arg,Env) = X =>
     if (between(48, 57, ord(Arg.head)); ord(Arg.head) = 45) 
