@@ -71,9 +71,7 @@ go2(N, M) = R =>
     end.
 
 go3(N, M) = R =>
-    L = 1,
-    Idx = 1,
-    R = 0,
+    L = 1, Idx = 1, R = 0,
     foreach (I in 1..M)
         Idx := 1+nidx(Idx+N,L-1),
         L := L+1,
