@@ -138,6 +138,5 @@ arg_vals(Args,Env) = [X,Y] =>
 
 av(Arg,Env) = X =>
     if (between(48, 57, ord(Arg.head)); ord(Arg.head) = 45) 
-        then X = Arg.to_int 
-        else X = get(Env,Arg,0)
+        then X = Arg.to_int else X = get(Env,Arg,0)
     end.
