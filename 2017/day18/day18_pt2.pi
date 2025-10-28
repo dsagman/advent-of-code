@@ -84,15 +84,13 @@ main =>
 
     while (Run == true)
         foreach(I in 1..Env.len, PC[I] <= Data.len),
-            do 
-                [Op|Args] = Data[PC[I]],
-                if Op = "mod" then Op := "wod" end,
-                [NPC,NEnv] = apply($Op.to_atom,Args,PC[I],Env[I],I),
-                PC[I] := NPC, Env[I] := NEnv
-            while (get(Env[I],"state")!="wait"),
+            [Op|Args] = Data[PC[I]],
+            if Op = "mod" then Op := "wod" end,
+            [NPC,NEnv] = apply($Op.to_atom,Args,PC[I],Env[I],I),
+            PC[I] := NPC, Env[I] := NEnv
         end,
         % println(Globals), % watch it sort the numbers!
-        if sum([get(Globals,J).len : J in 1..Env.len]) == 0 then Run := false end,
+        if (len([N: E in Env, N = get(E,"state"), N == "wait"]) == 2) then Run := false end,
     end,
     printf("Part 2 Answer: %w\n",get(Env[2],"total")).
 
