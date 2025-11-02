@@ -23,53 +23,84 @@
 % Following the path to the end, the letters it sees on its path are ABCDEF.
 
 % The little packet looks up at you, hoping you can help it find the way. What letters will it see (in the order it would see them) if it follows the path? (The routing diagram is very wide; make sure you view it without line wrapping.)
+% --- Part Two ---
+
+% The packet is curious how many steps it needs to go.
+
+% For example, using the same routing diagram from the example above...
+
+%      |          
+%      |  +--+    
+%      A  |  C    
+%  F---|--|-E---+ 
+%      |  |  |  D 
+%      +B-+  +--+ 
+
+% ...the packet would go:
+
+%     6 steps down (including the first line at the top of the diagram).
+%     3 steps right.
+%     4 steps up.
+%     3 steps right.
+%     4 steps down.
+%     3 steps right.
+%     2 steps up.
+%     13 steps left (including the F it stops on).
+
+% This would result in a total of 38 steps.
+
+% How many steps does the packet need to go?
 
 import util.
-import planner.
 
 main =>
-    G=read_file_lines("test.txt").strip,
-    % G=read_file_lines("data.txt").strip,
-    H = G.len, W = G[1].len,
-    Dir = [-1,0], % south
-    S = [[1,X] : X in 1..W, G[1,X] = '|'],
-    println(s=S),
+    % G=read_file_lines("test.txt").strip,
+    G=read_file_lines("data.txt").strip,
+    % print_grid(G),
 
-    print_grid(G),
+    [Part1,Part2] = scan(G),
+    printf("Answer Part1: %w\n",Part1),
+    printf("Answer Part2: %w\n",Part2),
 
-
-    Ltrs = new_map([[Y,X] = C : Y in 1..H, X in 1..W, C = G[Y,X], between(65,90,ord(C))]),
-
-    println(ltrs=Ltrs),
-
-    [Vs,Es] = scan(G),
-    println(vs=Vs),
-    println(es=Es.sort),
     println("done").
 
-scan(G) = [Vs,Es] =>
+scan(G) = [Part1,Part2] =>
+    Part1 = [],
+    Part2 = 1,
+
     H = G.len, W = G[1].len,
-    Vs = [], 
-    Dashes = [[X : X in 1..W, G[Y,X]=='-'] : Y in 1..H],
-    println(dashes=Dashes),
-    Verts = [[Y : Y in 1..H, G[Y,X]=='|'] : X in 1..W],
-    println(verts=Verts),
-    % end,
-    Es = zip(Dashes,Dashes.tail).
-    % foreach(Y in 1..(H-1), X in 1..(W-1))
-    %     % if (G[Y,X] == '-', G[Y,X+1] == '-') then Es := add([[Y,X],[Y,X+1]],Es) end,
-    %         % if (G[Y,X] == '-', G[Y,X+1] == '|') then Es := add([[Y,X],[Y,X+2]],Es) end, % is this OK?
-    %     if G[Y,X] == '-' then find(G[Y],'-',X+1,Nxt), 
-    %         if Nxt > 0 then Es := add([[Y,X],[Y,Nxt]],Es) end,
-    %     end,
+    Start = head([[1,X] : X in 1..W, G[1,X] = '|']),
+    Ls = new_map([[Y,X] = C : Y in 1..H, X in 1..W, C = G[Y,X], between(65,90,ord(C))]),
+    End = head([P : (P = L) in Ls, nbors(P,G).len == 1]),
+    
+    Dir = [1,0], % down
+    P = Start,
+    Plast = Start,
+    % P = copy_term(Start),
+    % Plast = copy_term(Start),
+    while (P != End)
+        while (G[P[1],P[2]] != '+', P != End)
+            if get(Ls,P,'') != '' then Part1 := Part1 ++ [get(Ls,P,'')] end,
+            Plast := P,
+            P := [P[1]+Dir[1],P[2]+Dir[2]],
+            Part2 := Part2 + 1
+        end,
+        Poss = [N : N in nbors(P,G), N != Plast], 
+        if Poss.len > 0 then
+            Pn = Poss[1],  
+            Dir := [Pn[1]-P[1],Pn[2]-P[2]],
+            P := Pn,
+            Part2 := Part2 + 1,
+        end,
+    end,
+    Part1 := Part1 ++ [get(Ls,P)].
 
-    % end.
 
-add(E,Es) = [E,E.reverse|Es].
-
-nbors([Y,X],W,H) = [[Y+Yn,X+Xn] : Yn in (-1)..1, Xn in (-1)..1, 
-                                  (Yn = 0; Xn = 0), Xn != Yn, 
-                                  between(1,W,X+Xn), between(1,H,Y+Yn)].
+nbors([Y,X],G) = Ns =>
+    H = G.len, W = G[1].len,
+    Ns = [[Yn,Xn] : Yd in (-1)..1, Xd in (-1)..1, Yn=Y+Yd, Xn=X+Xd,
+         (Yd=0; Xd=0), Xd!=Yd, between(1,W,Xn), between(1,H,Yn),
+         G[Yn,Xn] != ' '].
 
                         %     3,4
                         % 4,3 4,4 4,5
