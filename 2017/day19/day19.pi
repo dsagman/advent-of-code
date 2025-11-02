@@ -71,13 +71,11 @@ scan(G) = [Part1,Part2] =>
     H = G.len, W = G[1].len,
     Start = head([[1,X] : X in 1..W, G[1,X] = '|']),
     Ls = new_map([[Y,X] = C : Y in 1..H, X in 1..W, C = G[Y,X], between(65,90,ord(C))]),
-    End = head([P : (P = L) in Ls, nbors(P,G).len == 1]),
+    End = head([P : (P = _) in Ls, nbors(P,G).len == 1]),
     
     Dir = [1,0], % down
     P = Start,
     Plast = Start,
-    % P = copy_term(Start),
-    % Plast = copy_term(Start),
     while (P != End)
         while (G[P[1],P[2]] != '+', P != End)
             if get(Ls,P,'') != '' then Part1 := Part1 ++ [get(Ls,P,'')] end,
