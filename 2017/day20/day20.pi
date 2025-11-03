@@ -69,8 +69,8 @@ main =>
     % Ps = read_file_lines("test2.txt").map(parse),
     Ps = read_file_lines("day.txt").map(parse),   
 
-    Esqs = sort([Ps[I].map(norm_sq).reverse++[I-1] : I in 1..Ps.len]),
-    Part1 = Esqs.head.last,
+    Norms = sort([Ps[I].map(norm_sq).reverse++[I-1] : I in 1..Ps.len]),
+    Part1 = Norms.head.last,
 
     Null = [[0,0,0],[0,0,0],[0,0,0]],
     Pa = Ps.to_array,
@@ -97,7 +97,6 @@ main =>
 parse(P) = R =>
     Pt = split(P,"<>"),
     R = [Pt[I].split(",").map(to_int) : I in 2..2..Pt.len].
-
 
 norm_sq(A) = sum([A[I]*A[I] : I in 1..A.len]).
 
