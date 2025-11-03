@@ -33,31 +33,88 @@
 
 % Which particle will stay closest to position <0,0,0> in the long term?
 
+% --- Part Two ---
+
+% To simplify the problem further, the GPU would like to remove any particles that collide. Particles collide if their positions ever exactly match. Because particles are updated simultaneously, more than two particles can collide at the same time and place. Once particles collide, they are removed and cannot collide with anything else after that tick.
+
+% For example:
+
+% p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>    
+% p=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>    -6 -5 -4 -3 -2 -1  0  1  2  3
+% p=<-2,0,0>, v=< 1,0,0>, a=< 0,0,0>    (0)   (1)   (2)            (3)
+% p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>
+
+% p=<-3,0,0>, v=< 3,0,0>, a=< 0,0,0>    
+% p=<-2,0,0>, v=< 2,0,0>, a=< 0,0,0>    -6 -5 -4 -3 -2 -1  0  1  2  3
+% p=<-1,0,0>, v=< 1,0,0>, a=< 0,0,0>             (0)(1)(2)      (3)   
+% p=< 2,0,0>, v=<-1,0,0>, a=< 0,0,0>
+
+% p=< 0,0,0>, v=< 3,0,0>, a=< 0,0,0>    
+% p=< 0,0,0>, v=< 2,0,0>, a=< 0,0,0>    -6 -5 -4 -3 -2 -1  0  1  2  3
+% p=< 0,0,0>, v=< 1,0,0>, a=< 0,0,0>                       X (3)      
+% p=< 1,0,0>, v=<-1,0,0>, a=< 0,0,0>
+
+% ------destroyed by collision------    
+% ------destroyed by collision------    -6 -5 -4 -3 -2 -1  0  1  2  3
+% ------destroyed by collision------                      (3)         
+% p=< 0,0,0>, v=<-1,0,0>, a=< 0,0,0>
+
+% In this example, particles 0, 1, and 2 are simultaneously destroyed at the time and place marked X. On the next tick, particle 3 passes through unharmed.
+
+% How many particles are left after all collisions are resolved?
+
+
 import util.
 main =>
-    % Ps = read_file_lines("test.txt").map(parse),
+    % Ps = read_file_lines("test2.txt").map(parse),
     Ps = read_file_lines("day.txt").map(parse),   
-    % println(ps=Ps),
 
-    Esqs = sort([Ps[I].map(esq).reverse++[I-1] : I in 1..Ps.len]),
-    printf("Answer Part 1: %w\n",Esqs.head.last),
-    % println(esqs=Esqs.sort.head),
-    % foreach(I in 1..Ps.len)
-    %     println(pi=Ps[I]),
-    %     Ps[I] := tick(Ps[I]),
-    % end,
-    println("done").
+    Esqs = sort([Ps[I].map(norm_sq).reverse++[I-1] : I in 1..Ps.len]),
+    Part1 = Esqs.head.last,
+
+    Null = [[0,0,0],[0,0,0],[0,0,0]],
+    Pa = Ps.to_array,
+    garbage_collect(100000000),
+    foreach(T in 1..100)
+        println(t=T),
+        foreach(I in 1..(Pa.len-1), Pa[I] != Null)
+            Ti = tick2(Pa[I],T),
+            foreach (J in (I+1)..Pa.len, Pa[J] != Null)
+                Tj = tick2(Pa[J],T),
+                if Ti == Tj then 
+                    Pa[I] := Null,
+                    Pa[J] := Null,
+                    println(["hit",i=I,j=J,t=T,ti=Ti,tj=Tj]) 
+                end
+            end
+        end,
+    end,
+    Part2 = [P : P in Pa, P != Null],
+
+    printf("Answer Part 1: %w\n",Part1),
+    printf("Answer Part 2: %w\n",Part2.len).
 
 parse(P) = R =>
     Pt = split(P,"<>"),
     R = [Pt[I].split(",").map(to_int) : I in 2..2..Pt.len].
 
+
+norm_sq(A) = sum([A[I]*A[I] : I in 1..A.len]).
+
 addv(A,B) = [A[I]+B[I] : I in 1..A.len].
 
-esq(A) = sum([A[I]*A[I] : I in 1..A.len]).
+mulv(A,T) = [A[I]*T : I in 1..A.len].
 
-tick(P) = Pn =>
-    Pn = copy_term(P),
-    % Pn[3] := P[3],
-    Pn[2] := addv(Pn[2],Pn[3]),
-    Pn[1] := addv(Pn[1],Pn[2]).
+table
+tick2(P,T) = addv(addv(mulv(P[3],tri(T)),mulv(P[2],T)),P[1]).
+
+table
+tri(N) = (N*(N+1))//2
+
+
+% tick(P) = Pn =>
+%     Pn = copy_term(P),
+%     % Pn[3] := P[3],
+%     Pn[2] := addv(Pn[2],Pn[3]),
+%     Pn[1] := addv(Pn[1],Pn[2]).
+
