@@ -1,0 +1,67 @@
+import util.
+import math.
+
+main =>
+
+    % P = read_file_lines("test.txt").map(parse).to_array.sort, N = 10,
+    P = read_file_lines("day.txt").map(parse).to_array.sort, N = 1000,
+
+    Part1 = 0, Part2 = 0, Tree = [], K = 1,
+    G = all_dist(P),
+    do
+        [_,P1,P2] = G[K],
+        [I,J] = intree(P1,P2,Tree),
+        if I > 0, J < 0 then Tree[I] := Tree[I] ++ [P2] end,
+        if I < 0, J > 0 then Tree[J] := Tree[J] ++ [P1] end,
+        if I < 0, J < 0 then Tree := Tree ++ [[P1,P2]] end,
+        if I > 0, J > 0, I != J then 
+            Tree[I] := Tree[I] ++ Tree[J], 
+            Tree := slice(Tree, 1, J-1) ++ slice(Tree, J+1),
+        end,
+
+        if K = N then Part1 := prod(slice(sort_down([T.len : T in Tree]),1,3)) end,
+        Part2 := P1[1]*P2[1],
+        
+        K := K + 1
+    while (Tree[1].len < P.len, K <= G.len),
+
+    printf("Part 1: %w\n",Part1),
+    printf("Part 2: %w\n",Part2).
+
+parse(P) = split(P, ",").map(to_int).
+
+intree(P1,P2,Tree) = [I,J] =>
+    I = -1, J = -1,
+    foreach(K in 1..Tree.len)
+        if I < 0 && membchk(P1, Tree[K]) then I := K end,
+        if J < 0 && membchk(P2, Tree[K]) then J := K end
+    end.
+
+all_dist(P) = sort({[D,P[I],P[J]] : I in 1..P.len-1, J in 1..P.len, I < J, D = dist(P[I],P[J])}).
+
+dist([X1,Y1,Z1],[X2,Y2,Z2]) = (X1-X2)**2+(Y1-Y2)**2+(Z1-Z2)**2.
+
+% table
+% brute(P) = [D,P1,P2] =>
+%     D = maxint_small(), P1 = P[1], P2 = P[2],
+%     foreach(I in 1..P.len-1, J in 1..P.len, I < J)
+%         Dnew = dist(P[I],P[J]),
+%         if Dnew < D then P1 := P[I], P2 := P[J], D := Dnew end,
+%     end.
+
+% table
+% close(P) = [D,P1,P2], len(P) <= 3 => [D,P1,P2] = brute(P).
+
+% close(P) = [D,P1,P2], len(P) > 3 =>
+%     Mid = P.len//2,
+%     L = slice(P, 1, Mid),
+%     R = slice(P, 1+Mid),
+%     PL = close(L),
+%     PR = close(R),
+%     [DLR,PLR1,PLR2] = [PL,PR].sort.head,
+
+%     Strip = [Ps : Ps in P, abs(Ps[1] - P[Mid,1]) < DLR],
+%     PS = brute(Strip),
+%     [D,P1,P2] = [PS,[DLR,PLR1,PLR2]].sort.head.
+
+

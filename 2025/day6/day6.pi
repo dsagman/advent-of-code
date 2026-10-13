@@ -1,0 +1,28 @@
+import util.
+
+main =>
+    % Data = read_file_lines("test.txt"),
+    Data = read_file_lines("day.txt"),
+
+    Part1 = sum([calc(D) : D in Data.map(split).transpose.map(reverse)]),
+    printf("Part1: %w\n",Part1),
+
+    Vert = group(slice(Data, 1, Data.len-1).transpose.map(strip),[]),
+    Ops = [C : C in Data[Data.len], C != ' '],
+    Part2 = sum([calc2(Exp) : Exp in zip(Ops,Vert).map(to_list)]),
+    printf("Part2: %w\n",Part2).
+
+
+calc(["+"|T]) = sum(T.map(to_int)).
+calc(["*"|T]) = prod(T.map(to_int)).
+
+group([X],A) = [A++[X]].
+group([[]|T],A) = [A]++group(T,[]).
+group([H|T],A) = group(T,A++[H]).
+
+calc2(['+',T]) = sum([I.to_int : I in T]).
+calc2(['*',T]) = prod([I.to_int : I in T]).
+
+
+
+

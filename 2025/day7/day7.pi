@@ -1,0 +1,52 @@
+import util.
+import ordset.
+
+main =>
+    % Grid = read_file_lines("test.txt"),
+    Grid = read_file_lines("day.txt"),
+
+    printf("%c[?25l", chr(27)), % hide cursor
+
+    Part1 = part1(Grid,false),
+    printf("Part1: %w\n",Part1),
+
+    Part2 = p(Grid,find_first_of(Grid[1], 'S')),
+    printf("Part2: %w\n",Part2),
+
+    printf("%c[?25h", chr(27)). % show cursor
+
+table
+p([],S) = 1.
+p([H|T],S) = cond(H[S] = '^', p(T,S+1)+p(T,S-1), p(T,S)). 
+
+part1(Grid,Display) = Part1 =>
+    Beam = new_ordset([find_first_of(Grid[1], 'S')]),
+    Part1 = 0,
+    foreach (R in 2..Grid.len)
+        Split = [C : C in 1..Grid[1].len, Grid[R,C] = '^'],
+        foreach(B in Beam)
+            if membchk(B, Split) then 
+                Beam := insert(Beam, B+1), 
+                Beam := insert(Beam, B-1),
+                Beam := delete(Beam, B),
+                Part1:= Part1 + 1
+            end
+        end,
+        Grid := set_beam(Grid,Beam,R),
+        if Display=true then display(Grid) end
+    end.
+
+set_beam(Grid,Beam,Row) = Grid =>
+    foreach(B in Beam)
+        Grid[Row,B] := '|'
+    end.
+
+display(Grid) =>
+    printf("%c[2J%c[H", chr(27), chr(27)), % clear screen
+    foreach(G in Grid)
+        println(G)
+    end,
+    command("sleep .025") = _.
+
+
+
